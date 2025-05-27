@@ -12,8 +12,8 @@ const {
   addToBlacklist,
 } = require("../config/Redis");
 const Logger = require("../middleware/logger");
-
 const { RoleList } = require("../constants/RoleList");
+require("dotenv").config();
 
 // Kullanıcı girişi
 router.post("/login", Logger("POST users/login"), async (request, response) => {
@@ -51,10 +51,10 @@ router.post("/login", Logger("POST users/login"), async (request, response) => {
     const token = jwt.sign(
       {
         id: user._id,
-        username: user.registrationNumber,
+        registrationNumber: user.registrationNumber,
         roles: user.roles,
       },
-      "RANDOM-TOKEN", // Gerçek projede .env dosyasından alınmalı
+      process.env.RANDOM_TOKEN,
       { expiresIn: "24h" }
     );
 

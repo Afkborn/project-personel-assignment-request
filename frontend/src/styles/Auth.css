@@ -1,0 +1,145 @@
+.gradient-custom-2 {
+  /* fallback for old browsers */
+  background: #fccb90;
+
+  /* Chrome 10-25, Safari 5.1-6 */
+  background: -webkit-linear-gradient(
+    to right,
+    #ee7724,
+    #d8363a,
+    #dd3675,
+    #b44593
+  );
+
+  /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+  background: linear-gradient(to right, #ee7724, #d8363a, #dd3675, #b44593);
+}
+
+@media (min-width: 768px) {
+  .gradient-form {
+    height: 100vh !important;
+  }
+}
+@media (min-width: 769px) {
+  .gradient-custom-2 {
+    border-top-right-radius: 0.3rem;
+    border-bottom-right-radius: 0.3rem;
+  }
+}
+
+.login-card {
+  border: none;
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.system-info {
+  /* Mavi yerine kırmızı tonlarında gradient */
+  background: linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.system-info::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  /* SVG içerisindeki renk kodlarını kırmızı tonlarına değiştiriyorum */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%25' height='100%25'%3E%3Cdefs%3E%3Cpattern id='pattern' width='40' height='40' viewBox='0 0 40 40' patternUnits='userSpaceOnUse' patternTransform='rotate(45)'%3E%3Crect width='100%25' height='100%25' fill='%23b71c1c'/%3E%3Cpath d='M20 0L0 20L20 40L40 20Z' fill='%23d32f2f'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23pattern)'/%3E%3C/svg%3E");
+  opacity: 0.15;
+  z-index: 0;
+}
+
+.system-info > div {
+  position: relative;
+  z-index: 1;
+}
+
+.feature-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.2);
+  font-size: 1.1rem;
+}
+
+.btn-login {
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+  /* Mavi yerine kırmızı tonlarında gradient */
+  background: linear-gradient(135deg, #d32f2f 0%, #b71c1c 100%);
+}
+
+.btn-login:hover {
+  transform: translateY(-2px);
+  /* Gölge rengini kırmızı tonuna uyarlıyorum */
+  box-shadow: 0 4px 12px rgba(211, 47, 47, 0.3);
+}
+
+.logo-animation {
+  transition: all 0.3s ease;
+}
+
+.logo-animation:hover {
+  transform: scale(1.05);
+}
+
+.password-input {
+  position: relative;
+}
+
+.password-toggle {
+  color: #6c757d;
+  transition: all 0.2s ease;
+}
+
+.password-toggle:hover {
+  /* Mavi yerine kırmızı tonu */
+  color: #d32f2f;
+}
+
+/* Animasyon efektleri */
+.fade-in {
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Form inputları için stil iyileştirmeleri */
+.form-outline .form-control {
+  border-radius: 8px;
+  padding: 12px 15px;
+  transition: all 0.3s ease;
+}
+
+.form-outline .form-control:focus {
+  /* Focus durumundaki shadow rengini kırmızı tonu ile değiştiriyorum */
+  box-shadow: 0 0 0 3px rgba(211, 47, 47, 0.2);
+}
+
+/* Responsive için ek stiller */
+@media (max-width: 767px) {
+  .system-info {
+    border-radius: 0 0 15px 15px;
+    padding: 1.5rem;
+  }
+}

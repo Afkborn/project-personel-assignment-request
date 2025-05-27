@@ -3,6 +3,7 @@ const Messages = require("../constants/Messages");
 
 const UserSchema = mongoose.Schema(
   {
+    
     registrationNumber: {
       type: Number,
       required: [true, Messages.REGISTRATION_NUMBER_REQUIRED],
@@ -31,6 +32,7 @@ const UserSchema = mongoose.Schema(
         message: "En az bir rol gereklidir",
       },
       // enum kullanımına gerek duymadım, çünkü roller bir constant dosyasında tanımlı.
+      
     },
 
     email: {

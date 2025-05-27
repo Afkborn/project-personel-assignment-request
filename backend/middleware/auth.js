@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
 const { isValidToken } = require("../config/Redis");
 const getTimeForLog = require("../common/time");
+require("dotenv").config();
 
 module.exports = async (req, res, next) => {
   try {
@@ -30,7 +31,7 @@ module.exports = async (req, res, next) => {
     }
 
     // Token doğrulama
-    const decodedToken = jwt.verify(token, "RANDOM-TOKEN");
+    const decodedToken = jwt.verify(token, process.env.RANDOM_TOKEN);
 
     // Kullanıcı bilgisini request'e ekle
     req.user = decodedToken;

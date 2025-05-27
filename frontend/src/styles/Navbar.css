@@ -1,0 +1,98 @@
+.ays-navbar {
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  padding: 0.5rem 1rem;
+}
+
+.navbar-logo {
+  height: 60px;
+  width: auto;
+  transition: transform 0.3s ease;
+}
+
+.navbar-logo:hover {
+  transform: scale(1.05);
+}
+
+.navbar-title {
+  font-size: 1.4rem;
+  font-weight: 500;
+  color: #ffffff;
+  margin-left: 10px;
+}
+
+/* Container stilini düzenliyoruz */
+.ays-navbar .container {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}
+
+/* Dropdown container için stil ekliyoruz */
+.navbar-dropdown-container {
+  display: flex;
+  align-items: center;
+  margin-left: auto; /* sağa yaslama için */
+}
+
+.user-dropdown,
+.login-btn {
+  border-radius: 20px;
+  padding: 0.5rem 1.2rem;
+  font-weight: 500;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(to right, #e74c3c, #c0392b);
+  color: white;
+  border: none;
+}
+
+.user-dropdown:hover,
+.login-btn:hover {
+  background: linear-gradient(to right, #c0392b, #a33027);
+  color: white;
+}
+
+.dropdown-menu-custom {
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border: none;
+  margin-top: 10px;
+}
+
+.dropdown-menu-custom .dropdown-item {
+  padding: 8px 20px;
+  transition: background-color 0.2s ease;
+}
+
+.dropdown-menu-custom .dropdown-item:hover {
+  background-color: #f8f9fa;
+  color: #e74c3c;
+}
+
+/* Responsive tasarım için */
+@media (max-width: 768px) {
+  .navbar-title {
+    font-size: 1.1rem;
+  }
+
+  .navbar-logo {
+    height: 50px;
+  }
+
+  /* Mobil görünümde container düzenlemesi */
+  .ays-navbar .container {
+    flex-direction: column;
+  }
+
+  .navbar-dropdown-container {
+    margin-top: 10px;
+    margin-left: 0;
+  }
+}
+
+/* Orta boyutlu ekranlarda düzenleme */
+@media (min-width: 769px) and (max-width: 991px) {
+  .ays-navbar .container {
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+}

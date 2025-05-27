@@ -1,3 +1,4 @@
+## Project Personel Assignment Request
 
 Proje Başlığı ve Amacı
 
@@ -15,9 +16,9 @@ API Dökümantasyonu (Varsa Swagger benzeri)
 
 Geliştirici Notları
 
-Katkıda Bulunanlar / Yazar
 
-Lisans (MIT, GPL vs. opsiyonel)
+
+
 
 
 
@@ -43,3 +44,12 @@ react-scripts - React uygulamalarını geliştirmek için kullanılan bir araç 
 universal-cookie - React uygulamalarında çerez yönetimi için kullanılan bir kütüphane, kullanıcı oturumlarını yönetmeyi kolaylaştırır.
 http-proxy-middleware - API isteklerini yönlendirmek için kullanılan bir araç, geliştirme sırasında CORS sorunlarını aşmayı sağlar.
 fortawesome/fontawesome-free - İkon seti, kullanıcı arayüzünde görsel öğeler eklemeyi kolaylaştırır.
+
+
+
+Projeyi çok kapsamlı yapmayı tercih etmedim  çünkü inceleme aşamasında çok fazla zaman harcamanızı istemedim.
+Bu yüzden sadece temel CRUD işlemlerini ve kullanıcı kimlik doğrulama işlemlerini içeren basit bir uygulama geliştirdim.
+Buna benzer olan ve şuan Eskişehir Adliyesinde local sunucuda çalışan kapsamlı bir uygulamam mevcut. 
+
+
+## Lisans
