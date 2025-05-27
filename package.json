@@ -1,0 +1,14 @@
+{
+  "name": "project-personel-assignment-request",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev --workspace frontend\" \"npm run dev --workspace backend\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.0.1"
+  }
+}
