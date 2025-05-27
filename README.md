@@ -1,4 +1,3 @@
-README dosyasının şu bölümlerden oluşması profesyonel bir görünüm sağlar:
 
 Proje Başlığı ve Amacı
 

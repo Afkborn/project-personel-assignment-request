@@ -4,7 +4,7 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 const mongoDbConnect = require("./database/Database");
 const getTimeForLog = require("./common/time");
-const { initRedis } = require("./config/redis");
+const { initRedis } = require("./config/Redis");
 require("dotenv").config();
 const port = process.env.PORT || 3000;
 
@@ -34,10 +34,18 @@ app.use(cors());
 app.use(bodyParser.json());
 
 // API'leri tanımla
+const users = require("./routes/users");
+app.use("/api/users", users);
 
+const courthouses = require("./routes/courthouses");
+app.use("/api/courthouses", courthouses);
 
 mongoDbConnect(); // MongoDB bağlantısını başlat
 
+
+// eğer veritabanında admin kullanıcısı yoksa oluştur
+const { createAdminUser } = require("./actions/DatabaseActions");
+createAdminUser();
 
 // Sunucuyu başlat
 app.listen(port, () => {

@@ -22,6 +22,9 @@ exports.ROLE_REQUIRED = "Rol zorunludur";
 exports.USERS_LIST = "Kullanıcılar başarılı bir şekilde listelendi!";
 exports.USERS_NOT_FOUND = "Kullanıcılar bulunamadı";
 exports.USERS_GET_FAILED = "Kullanıcılar getirilemedi";
+exports.REGISTRATION_NUMBER_REQUIRED = "Sicil numarası zorunludur";
+exports.REGISTRATION_NUMBER_EXIST = "Sicil numarası zaten mevcut";
+exports.COURT_ID_REQUIRED = "Mahkeme ID'si zorunludur";
 
 // COMMON
 exports.REQUIRED_FIELD = "alanı zorunludur";
