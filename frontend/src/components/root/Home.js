@@ -15,8 +15,8 @@ import Cookies from "universal-cookie";
 import axios from "axios";
 import email_red from "../../assets/email-red.svg";
 import admin_user from "../../assets/admin-user.svg";
-
-import { PBS_VISIBLE_ROLES, PYS_VISIBLE_ROLES} from "../constant/Perm";
+import logo from "../../assets/logo300.png";
+import { PBS_VISIBLE_ROLES, PYS_VISIBLE_ROLES } from "../constant/Perm";
 
 import Navbar from "../navbar/Navbar";
 import "../../styles/Home.css";
@@ -70,6 +70,10 @@ export default function Home() {
     window.location.href = "/login";
   }
 
+  function handleAdaletBakanligi() {
+    window.open("https://www.adalet.gov.tr/", "_blank");
+  }
+
   const [hoveredIndex, setHoveredIndex] = useState(null);
 
   const handleMouseEnter = (index) => {
@@ -115,6 +119,16 @@ export default function Home() {
       onClick: handleUyapMail,
       visible: true,
       color: "warning",
+    },
+    {
+      id: 3,
+      label: "Adalet Bakanlığı",
+      detail: "Adalet Bakanlığı resmi web sitesine erişmek için tıklayınız.",
+      type: "item",
+      image: logo,
+      onClick: handleAdaletBakanligi,
+      visible: true,
+      color: "secondary",
     },
   ];
 

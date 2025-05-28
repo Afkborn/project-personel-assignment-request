@@ -21,13 +21,38 @@ const AssignmentRequestSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["pending", "approved", "rejected"],
-      default: "pending",
+      enum: ["preparing","pending", "approved", "rejected"],
+      default: "preparing",
+      // preparing: Başvuru hazırlanıyor
+      // pending: Başvuru beklemede
+      // approved: Başvuru onaylandı
+      // rejected: Başvuru reddedildi
     },
-    createdAt: {
+
+    rejectionReason: {
+      type: String,
+      default: null,
+    },
+    approvedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+    approvedAt: {
       type: Date,
-      default: Date.now,
+      default: null,
     },
+    rejectedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+    rejectedAt: {
+      type: Date,
+      default: null,
+    },
+
+
   },
   {
     timestamps: true,

@@ -72,6 +72,9 @@ app.use("/api/users", users);
 const courthouses = require("./routes/courthouses");
 app.use("/api/courthouses", courthouses);
 
+const assignmentRequests = require("./routes/assignmentRequests");
+app.use("/api/assignment-requests", assignmentRequests);
+
 mongoDbConnect(); // MongoDB bağlantısını başlat
 
 // eğer veritabanında admin kullanıcısı yoksa oluştur

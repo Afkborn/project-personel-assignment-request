@@ -32,6 +32,7 @@ Express.js - Node.js üzerinde çalışan hafif ve esnek bir web uygulama çatı
 React - Kullanıcı arayüzü geliştirmek için popüler bir JavaScript kütüphanesi, bileşen tabanlı mimarisi sayesinde yeniden kullanılabilir ve yönetilebilir UI bileşenleri oluşturmayı kolaylaştırır.
 Node.js - Sunucu tarafı JavaScript çalıştırmak için kullanılan bir platform, asenkron I/O desteği ile yüksek performanslı web uygulamaları geliştirmeyi sağlar.
 Redis - Bellek içi veri yapısı deposu, hızlı veri erişimi ve önbellekleme için kullanılır, performansı artırır.
+multer - Dosya yükleme işlemleri için kullanılan bir middleware, kullanıcıların dosya yüklemesini kolaylaştırır.
 
 FrontEnd 
 Axios - HTTP istekleri yapmak için kullanılan bir kütüphane, API ile etkileşimde kolaylık sağlar.
