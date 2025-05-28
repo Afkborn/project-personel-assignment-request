@@ -9,6 +9,28 @@ const path = require("path");
 const port = process.env.PORT || 3000;
 require("dotenv").config();
 
+// Tüm ortam değişkenlerini kontrol et
+const requiredEnvVars = [
+  "PORT",
+  "MONGO_DB_CONNECTION",
+  "SALT_CODE",
+  "RANDOM_TOKEN",
+  "DEFAULT_ADMIN_REGISTRATION_NUMBER",
+  "DEFAULT_ADMIN_PASSWORD",
+  "MEDIA_ROOT_FOLDER",
+  "MEDIA_TEMP_FOLDER",
+  "MEDIA_AVATAR_FOLDER",
+  "REDIS_URL"
+];
+requiredEnvVars.forEach((envVar) => {
+  if (!process.env[envVar]) {
+    console.error(
+      getTimeForLog() + `Hata: ${envVar} ortam değişkeni tanımlanmamış!`
+    );
+    process.exit(1); // Uygulamayı durdur
+  }
+});
+
 
 // Redis bağlantısını başlat
 initRedis().then((isConnected) => {
@@ -30,14 +52,18 @@ app.use(
 );
 
 // CORS'u etkinleştirir
-app.use(cors()); 
+app.use(cors());
 
 // JSON gövde verilerini ayrıştırmak için body-parser'ı kullanır
 app.use(bodyParser.json());
 
 // Statik dosyaları sunmak için express.static middleware'ini kullanır
-app.use("/media", express.static(path.join(__dirname, "..", process.env.MEDIA_FOLDER || "media")));
-
+app.use(
+  "/media",
+  express.static(
+    path.join(__dirname, "..", process.env.MEDIA_FOLDER || "media")
+  )
+);
 
 // API'leri tanımla
 const users = require("./routes/users");
@@ -47,7 +73,6 @@ const courthouses = require("./routes/courthouses");
 app.use("/api/courthouses", courthouses);
 
 mongoDbConnect(); // MongoDB bağlantısını başlat
-
 
 // eğer veritabanında admin kullanıcısı yoksa oluştur
 const { createAdminUser } = require("./actions/DatabaseActions");
