@@ -314,16 +314,6 @@ export default function PersonelBilgiSistemiDashboard() {
                       Tayin Talepleri
                     </NavLink>
                   </NavItem>
-                  <NavItem>
-                    <NavLink
-                      className={`${activeTab === "3" ? "active" : ""}`}
-                      onClick={() => toggleTab("3")}
-                      style={{ cursor: "pointer" }}
-                    >
-                      <FaCalendarAlt className="me-2" />
-                      İzin Talepleri
-                    </NavLink>
-                  </NavItem>
                 </Nav>
 
                 <TabContent activeTab={activeTab} className="p-4">
@@ -684,23 +674,9 @@ export default function PersonelBilgiSistemiDashboard() {
 
                   {/* Tayin Talepleri Tabı */}
                   <TabPane tabId="2">
-                    <AssignmentRequestTabPane />
+                    <AssignmentRequestTabPane userData={userData} />
                   </TabPane>
 
-                  {/* İzin Talepleri Tabı */}
-                  <TabPane tabId="3">
-                    <div className="text-center py-5">
-                      <FaCalendarAlt size={48} className="text-muted mb-3" />
-                      <h4 className="mb-3">İzin Talepleri</h4>
-                      <p className="text-muted">
-                        Bu bölüm henüz aktif değil. Yakında izin taleplerinizi
-                        bu ekrandan yönetebileceksiniz.
-                      </p>
-                      <Button color="outline-primary" disabled>
-                        Yeni İzin Talebi Oluştur
-                      </Button>
-                    </div>
-                  </TabPane>
                 </TabContent>
               </Col>
             </Row>

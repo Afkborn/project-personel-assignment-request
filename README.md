@@ -53,4 +53,14 @@ Bu yüzden sadece temel CRUD işlemlerini ve kullanıcı kimlik doğrulama işle
 Buna benzer olan ve şuan Eskişehir Adliyesinde local sunucuda çalışan kapsamlı bir uygulamam mevcut. 
 
 
+
+// npm run start => Frontend ve Backend'i aynı anda çalıştırmak için kullanılır, frontend geliştirme modunda çalışır, backend ise prod modunda çalışır.
+// npm run dev => frontend ve backend'i aynı anda çalıştırmak için kullanılır, geliştirici modunda çalışır
+// npm run netlify => Frontend'i Netlify üzerinde dağıtmak için kullanılır, bu komut sadece frontend'i derler.
+// npm run backend => Sadece backend'i çalıştırmak için kullanılır, backend sunucusu başlatılır.
+
+
+
+
+
 ## Lisans

@@ -21,14 +21,13 @@ const AssignmentRequestSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["preparing","pending", "approved", "rejected"],
+      enum: ["preparing", "pending", "approved", "rejected"],
       default: "preparing",
       // preparing: Başvuru hazırlanıyor
       // pending: Başvuru beklemede
       // approved: Başvuru onaylandı
       // rejected: Başvuru reddedildi
     },
-
     rejectionReason: {
       type: String,
       default: null,
@@ -53,6 +52,7 @@ const AssignmentRequestSchema = new mongoose.Schema(
     },
 
 
+    // belge ekleme, talep tipi eklenebilir. 
   },
   {
     timestamps: true,

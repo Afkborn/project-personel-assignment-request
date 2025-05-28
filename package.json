@@ -6,10 +6,15 @@
     "backend"
   ],
   "scripts": {
+    "start" : "concurrently \"npm run start --workspace frontend\" \"npm run start --workspace backend\"",
     "dev": "concurrently \"npm run dev --workspace frontend\" \"npm run dev --workspace backend\"",
-    "build": "concurrently \"npm run build --workspace frontend\" "
+    "netlify": "npm run build --workspace frontend && netlify deploy --prod",
+    "backend" : "npm run dev --workspace backend"
   },
   "devDependencies": {
     "concurrently": "^8.0.1"
   }
 }
+
+
+
