@@ -3,7 +3,8 @@ import Cookies from "universal-cookie";
 import { jwtDecode } from "jwt-decode";
 import { hasRequiredRole } from "../common/authUtils"; // Ortak fonksiyonu içe aktar
 
-function UserRoutes() {
+
+function ProtectedRoutes(accesibleRoleList) {
   const cookies = new Cookies();
   const token = cookies.get("TOKEN");
   const location = useLocation();
@@ -22,21 +23,9 @@ function UserRoutes() {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Rol kontrolü
-  const requiredRoles = [
-    "yazi-isleri-muduru",
-    "zabit-katibi",
-    "zabit-katibi-sozlesmeli",
-    "mubasir",
-    "mubasir-sozlesmeli",
-    "memur",
-    "memur-sozlesmeli",
-    "user",
-    "infazvekorumamemuru",
-    "infazvekorumamemuru-sozlesmeli",
-  ];
+  
 
-  if (!hasRequiredRole(decodedToken, requiredRoles)) {
+  if (!hasRequiredRole(decodedToken, accesibleRoleList.accesibleRoleList)) {
     return <Navigate to="/unauthorized" state={{ from: location }} replace />;
   }
 
@@ -44,4 +33,4 @@ function UserRoutes() {
   return <Outlet />;
 }
 
-export default UserRoutes;
+export default ProtectedRoutes;

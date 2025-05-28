@@ -13,10 +13,10 @@ import {
 
 import Cookies from "universal-cookie";
 import axios from "axios";
-import guide_red from "../../assets/guide-red.svg";
-import courthouse_red from "../../assets/courthouse-red.svg";
 import email_red from "../../assets/email-red.svg";
 import admin_user from "../../assets/admin-user.svg";
+
+import { PBS_VISIBLE_ROLES, PYS_VISIBLE_ROLES} from "../constant/Perm";
 
 import Navbar from "../navbar/Navbar";
 import "../../styles/Home.css";
@@ -87,19 +87,7 @@ export default function Home() {
       detail:
         "Adliye personel bilgilerinizi görüntülemek ve güncellemek için tıklayınız.",
       type: "item",
-      visibleRoles: [
-        "yazi-isleri-muduru",
-        "zabit-katibi",
-        "zabit-katibi-sozlesmeli",
-        "mubasir",
-        "mubasir-sozlesmeli",
-        "memur",
-        "memur-sozlesmeli",
-        "user",
-        "infazvekorumamemuru",
-        "infazvekorumamemuru-sozlesmeli",
-        "admin",
-      ],
+      visibleRoles: PBS_VISIBLE_ROLES,
       image: admin_user,
       onClick: handlePBS,
       visible: true,
@@ -110,7 +98,7 @@ export default function Home() {
       label: "Personel Yönetim Sistemi",
       detail: "Adliye personellerine ait işlemleri yönetmek için tıklayınız.",
       type: "item",
-      visibleRoles: ["admin"],
+      visibleRoles: PYS_VISIBLE_ROLES,
       image: admin_user,
       onClick: handlePYS,
       visible: true,

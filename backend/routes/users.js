@@ -14,6 +14,7 @@ const {
 const Logger = require("../middleware/logger");
 const { RoleList } = require("../constants/RoleList");
 require("dotenv").config();
+const { CourthouseList } = require("../constants/CourthouseList");
 
 // Kullanıcı girişi
 router.post("/login", Logger("POST users/login"), async (request, response) => {
@@ -195,13 +196,28 @@ router.get("/me", auth, Logger("GET users/me"), async (request, response) => {
     const userId = request.user.id;
 
     // Kullanıcıyı veritabanından getir (şifre hariç)
-    const user = await User.findById(userId).select("-password");
+    let user = await User.findById(userId).select("-password");
 
     if (!user) {
       return response.status(404).send({
         message: "Kullanıcı bulunamadı",
       });
     }
+    user = user.toObject(); // Mongoose dokümanını düz JavaScript nesnesine çevir    
+
+    // user.courtIdyi  CourthouseList'ten adliye bilgisi ile doldur
+    const courthouse = CourthouseList.find(
+      (court) => court.plateCode === user.courtId
+    );
+    
+    if (courthouse) {
+      //delete user.courtId; // courtId'yi kaldır
+      user.court = {
+        plateCode: courthouse.plateCode,
+        name: courthouse.name,
+        address: courthouse.address,
+      };
+    } 
 
     response.status(200).send({
       user,
@@ -557,13 +573,13 @@ router.get("/roles", Logger("GET users/roles"), async (request, response) => {
       return {
         id: role.id,
         label: role.label,
-        name: role.name 
+        name: role.name,
       };
     });
 
     // Rol listesini döndür
     response.status(200).send({
-      roles
+      roles,
     });
   } catch (error) {
     console.error(getTimeForLog() + "Get roles error:", error);

@@ -1,4 +1,3 @@
-
 import { Routes, Route } from "react-router-dom";
 import Home from "./Home";
 import NotFound from "../common/NotFound";
@@ -7,13 +6,29 @@ import Unauthorized from "../common/Unauthorized";
 import Login from "../auth/Login";
 import Register from "../auth/Register";
 
+import ProtectedRoutes from "../routes/ProtectedRoutes";
+import { PYS_ACCESSIBLE_ROLES, PBS_ACCESSIBLE_ROLES } from "../constant/Perm";
+import PersonelYonetimSistemiDashboard from "../pys/PersonelYonetimSistemiDashboard";
+import PersonelBilgiSistemiDashboard from "../pbs/PersonelBilgiSistemiDashboard";
 function App() {
   return (
     <div className="app-wrapper">
       <Routes>
         <Route path="/" element={<Home />} />
 
-        {/* Protected Routes */}
+        {/* Protected PYS */}
+        <Route
+          element={<ProtectedRoutes accesibleRoleList={PYS_ACCESSIBLE_ROLES} />}
+        >
+          <Route path="/pys/*" element={<PersonelYonetimSistemiDashboard />} />
+        </Route>
+
+        {/* Protected PBS*/}
+        <Route
+          element={<ProtectedRoutes accesibleRoleList={PBS_ACCESSIBLE_ROLES} />}
+        >
+          <Route path="/pbs/*" element={<PersonelBilgiSistemiDashboard />} />
+        </Route>
 
         {/* Public Routes */}
         <Route path="/login" element={<Login />} />

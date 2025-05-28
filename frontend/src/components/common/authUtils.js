@@ -1,4 +1,5 @@
 export function hasRequiredRole(decodedToken, requiredRoles) {
+
   if (!decodedToken || !Array.isArray(decodedToken.roles)) {
     return false;
   }
