@@ -102,6 +102,11 @@ const UserSchema = mongoose.Schema(
     unitStartDate: {
       type: Date,
     },
+
+    avatar: {
+      type: String,
+      // default: "https://i.pravatar.cc/300",
+    },
   },
   {
     timestamps: true,

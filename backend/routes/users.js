@@ -5,7 +5,11 @@ const User = require("../model/User");
 const jwt = require("jsonwebtoken");
 const getTimeForLog = require("../common/time");
 const auth = require("../middleware/auth");
+const upload = require("../middleware/upload");
 const toSHA256 = require("../common/hashing");
+const fs = require("fs");
+const path = require("path");
+const mediaAvatarPath = process.env.MEDIA_AVATAR_FOLDER;
 const {
   invalidateAllUserTokens,
   isValidToken,
@@ -599,5 +603,67 @@ router.get("/roles", Logger("GET users/roles"), async (request, response) => {
     });
   }
 });
+
+// Kullanıcı resmi yükleme
+router.post(
+  "/upload-avatar",
+  auth,
+  upload.single("avatar"),
+  Logger("POST users/upload-avatar"),
+  async (request, response) => {
+    try {
+      // Kullanıcı kimliğini auth middleware'den al
+      const userId = request.user.id;
+
+      // Kullanıcıyı veritabanından bul
+      const user = await User.findById(userId).select("-password");
+      if (!user) {
+        return response.status(404).send({
+          message: "Kullanıcı bulunamadı",
+        });
+      }
+
+      // Resim dosyasını kontrol et
+      if (!request.file) {
+        return response.status(400).send({
+          message: "Resim dosyası yüklenmedi",
+        });
+      }
+
+      const oldPath = request.file.path;
+      const newPath = path.join(
+        mediaAvatarPath,
+        userId + path.extname(request.file.originalname)
+      );
+
+      // Dosyayı media klasörüne kopyala
+      fs.copyFileSync(oldPath, newPath);
+
+      // Kullanıcının avatar URL'sini güncelle
+      const updatedUser = await User.findByIdAndUpdate(
+        userId,
+        { avatar: newPath },
+        { new: true, runValidators: true }
+      ).select("-password");
+
+      if (!updatedUser) {
+        return response.status(404).send({
+          message: "Kullanıcı bulunamadı",
+        });
+      }
+
+      response.status(200).send({
+        message: "Avatar başarıyla yüklendi",
+        user: updatedUser,
+      });
+    } catch (error) {
+      console.error(getTimeForLog() + "Upload avatar error:", error);
+      response.status(500).send({
+        message: "Avatar yüklenirken bir hata oluştu",
+        error: error.message,
+      });
+    }
+  }
+);
 
 module.exports = router;

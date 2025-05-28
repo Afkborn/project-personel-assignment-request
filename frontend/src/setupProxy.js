@@ -17,4 +17,17 @@ module.exports = function (app) {
       },
     })
   );
+
+  
+  app.use(
+    "/media",
+    createProxyMiddleware({
+      target: target,
+      changeOrigin: true,
+      pathRewrite: {
+        "^/media": "/media", // /media istekleri için
+      },
+    })
+  );
+
 };

@@ -34,6 +34,9 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/unauthorized" element={<Unauthorized />} />
+
+        {/* Catch-all for 404 Not Found */}
+
         <Route path="*" element={<NotFound />} />
       </Routes>
 

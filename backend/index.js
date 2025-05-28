@@ -5,8 +5,10 @@ const bodyParser = require("body-parser");
 const mongoDbConnect = require("./database/Database");
 const getTimeForLog = require("./common/time");
 const { initRedis } = require("./config/Redis");
-require("dotenv").config();
+const path = require("path");
 const port = process.env.PORT || 3000;
+require("dotenv").config();
+
 
 // Redis bağlantısını başlat
 initRedis().then((isConnected) => {
@@ -32,6 +34,10 @@ app.use(cors());
 
 // JSON gövde verilerini ayrıştırmak için body-parser'ı kullanır
 app.use(bodyParser.json());
+
+// Statik dosyaları sunmak için express.static middleware'ini kullanır
+app.use("/media", express.static(path.join(__dirname, "..", process.env.MEDIA_FOLDER || "media")));
+
 
 // API'leri tanımla
 const users = require("./routes/users");

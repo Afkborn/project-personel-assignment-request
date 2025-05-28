@@ -31,6 +31,8 @@ import {
 } from "react-icons/fa";
 import defaultAvatar from "../../assets/default-avatar.png";
 import NavigationBar from "../navbar/Navbar";
+import AssignmentRequestTabPane from "./AssignmentRequestTabPane";
+
 const cookies = new Cookies();
 
 export default function PersonelBilgiSistemiDashboard() {
@@ -43,12 +45,10 @@ export default function PersonelBilgiSistemiDashboard() {
   const [formData, setFormData] = useState({});
   const [saveLoading, setSaveLoading] = useState(false);
 
-  // Kan grubu seçenekleri
   const bloodTypes = ["", "A+", "A-", "B+", "B-", "AB+", "AB-", "0+", "0-"];
   const keyboardTypes = ["", "F", "Q"];
 
   useEffect(() => {
-    // Kullanıcı bilgilerini getir
     fetchUserData();
   }, []);
 
@@ -138,6 +138,57 @@ export default function PersonelBilgiSistemiDashboard() {
     }
   };
 
+  const onClickUpload = () => {
+    // dosya yükleme işlemi için gerekli kodlar
+
+    // dosya seçim penceresini aç
+    const fileInput = document.createElement("input");
+    fileInput.type = "file";
+    fileInput.accept = "image/*"; // Sadece resim dosyalarını kabul et
+    fileInput.onchange = async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      // Dosya boyutunu kontrol et (örneğin, 5MB sınırı)
+      if (file.size > 5 * 1024 * 1024) {
+        setError("Dosya boyutu 5MB'dan büyük olmamalıdır.");
+        return;
+      }
+      const formData = new FormData();
+      formData.append("avatar", file);
+
+      try {
+        const token = cookies.get("TOKEN");
+        if (!token) {
+          setError("Oturum bulunamadı. Lütfen tekrar giriş yapın.");
+          return;
+        }
+
+        const response = await axios({
+          method: "POST",
+          url: "/api/users/upload-avatar",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          data: formData,
+        });
+
+        setUserData((prevData) => ({
+          ...prevData,
+          avatar: response.data.avatar, // Yeni avatar URL'sini güncelle
+        }));
+        setSuccess("Profil fotoğrafınız başarıyla yüklendi.");
+      } catch (error) {
+        console.error("Profil fotoğrafı yüklenirken hata:", error);
+        setError(
+          error.response?.data?.message ||
+            "Profil fotoğrafı yüklenirken bir hata oluştu. Lütfen daha sonra tekrar deneyin."
+        );
+      }
+    };
+    fileInput.click(); // Dosya seçim penceresini aç
+  };
+
   // Tab'ı değiştir
   const toggleTab = (tab) => {
     if (activeTab !== tab) {
@@ -189,12 +240,12 @@ export default function PersonelBilgiSistemiDashboard() {
         <Card className="shadow-sm mb-5">
           <CardBody className="p-0">
             <Row className="g-0">
-              {/* Profil Bilgisi ve Fotoğraf - Soldaki Kısım */}
+              {/* Profil Bilgisi ve Fotoğraf */}
               <Col lg="3" className="border-end">
                 <div className="p-4 text-center">
                   <div className="position-relative d-inline-block mb-4">
                     <img
-                      src={userData?.profilePicture || defaultAvatar}
+                      src={userData?.avatar || defaultAvatar}
                       alt="Profil Fotoğrafı"
                       className="img-fluid rounded-circle"
                       style={{
@@ -207,8 +258,8 @@ export default function PersonelBilgiSistemiDashboard() {
                       color="light"
                       className="rounded-circle position-absolute"
                       style={{ bottom: "0", right: "0", padding: "8px" }}
-                      title="Fotoğraf Yükle (Yakında)"
-                      disabled={true}
+                      title="Fotoğraf Yükle"
+                      onClick={onClickUpload}
                     >
                       <FaCamera />
                     </Button>
@@ -240,7 +291,7 @@ export default function PersonelBilgiSistemiDashboard() {
                 </div>
               </Col>
 
-              {/* Tab İçeriği - Sağdaki Kısım */}
+              {/* Tab İçeriği  */}
               <Col lg="9">
                 <Nav tabs className="nav-tabs-custom">
                   <NavItem>
@@ -437,7 +488,9 @@ export default function PersonelBilgiSistemiDashboard() {
 
                         <Col md={6}>
                           <FormGroup>
-                            <Label for="isMartyrRelative">Şehit/Gazi Yakını</Label>
+                            <Label for="isMartyrRelative">
+                              Şehit/Gazi Yakını
+                            </Label>
                             <div className="d-flex align-items-center mt-2">
                               <Input
                                 type="checkbox"
@@ -631,17 +684,7 @@ export default function PersonelBilgiSistemiDashboard() {
 
                   {/* Tayin Talepleri Tabı */}
                   <TabPane tabId="2">
-                    <div className="text-center py-5">
-                      <FaExchangeAlt size={48} className="text-muted mb-3" />
-                      <h4 className="mb-3">Tayin Talepleri</h4>
-                      <p className="text-muted">
-                        Bu bölüm henüz aktif değil. Yakında tayin taleplerinizi
-                        bu ekrandan yönetebileceksiniz.
-                      </p>
-                      <Button color="outline-primary" disabled>
-                        Yeni Tayin Talebi Oluştur
-                      </Button>
-                    </div>
+                    <AssignmentRequestTabPane />
                   </TabPane>
 
                   {/* İzin Talepleri Tabı */}
