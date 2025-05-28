@@ -26,7 +26,6 @@ function Login() {
   const [errorMessage, setErrorMessage] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
 
   const navigate = useNavigate();
 
@@ -216,7 +215,7 @@ function Login() {
                         setErrorMessage("");
                       }}
                       value={sifre}
-                      type={showPassword ? "text" : "password"}
+                      type={"password"}
                       autoComplete="current-password"
                     />
                   </div>
@@ -286,8 +285,7 @@ function Login() {
             <div className="px-4 py-5 p-md-5">
               <h3 className="fw-bold mb-4">Adliye Yönetim Sistemi</h3>
               <p className="mb-4">
-                Demo için  oluşturulmuş bir giriş formudur.{" "}
-                <br />
+                Demo için oluşturulmuş bir giriş formudur. <br />
                 Sadece sistemin test edilebilmesi amacı ile hazırlanmıştır.
                 Adalet Bakanlığı API ve veritabanı ile entegre değildir.
               </p>

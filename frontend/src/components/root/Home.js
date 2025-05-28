@@ -79,7 +79,7 @@ export default function Home() {
   const handleMouseLeave = () => {
     setHoveredIndex(null);
   };
-
+  console.log("user", user);
   const listGroupItems = [
     {
       id: 1,

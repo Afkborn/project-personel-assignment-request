@@ -203,13 +203,13 @@ router.get("/me", auth, Logger("GET users/me"), async (request, response) => {
         message: "Kullanıcı bulunamadı",
       });
     }
-    user = user.toObject(); // Mongoose dokümanını düz JavaScript nesnesine çevir    
+    user = user.toObject(); // Mongoose dokümanını düz JavaScript nesnesine çevir
 
     // user.courtIdyi  CourthouseList'ten adliye bilgisi ile doldur
     const courthouse = CourthouseList.find(
       (court) => court.plateCode === user.courtId
     );
-    
+
     if (courthouse) {
       //delete user.courtId; // courtId'yi kaldır
       user.court = {
@@ -217,7 +217,17 @@ router.get("/me", auth, Logger("GET users/me"), async (request, response) => {
         name: courthouse.name,
         address: courthouse.address,
       };
-    } 
+    }
+
+    // kullanıcının rollerini al RoleList'den bulup label ve name ile doldur
+    user.rolesVisible = user.roles.map((role) => {
+      const roleInfo = RoleList.find((r) => r.name === role);
+      return {
+        id: roleInfo.id,
+        label: roleInfo.label,
+        name: roleInfo.name,
+      };
+    });
 
     response.status(200).send({
       user,

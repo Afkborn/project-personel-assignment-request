@@ -11,7 +11,7 @@ exports.PBS_VISIBLE_ROLES = [
   "user",
   "infazvekorumamemuru",
   "infazvekorumamemuru-sozlesmeli",
-  "admin",
+
 ];
 
 exports.PBS_ACCESSIBLE_ROLES = [
@@ -25,7 +25,7 @@ exports.PBS_ACCESSIBLE_ROLES = [
   "user",
   "infazvekorumamemuru",
   "infazvekorumamemuru-sozlesmeli",
-  "admin",
+  
 ];
 
 exports.PYS_VISIBLE_ROLES = ["admin"];

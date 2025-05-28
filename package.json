@@ -6,7 +6,8 @@
     "backend"
   ],
   "scripts": {
-    "dev": "concurrently \"npm run dev --workspace frontend\" \"npm run dev --workspace backend\""
+    "dev": "concurrently \"npm run dev --workspace frontend\" \"npm run dev --workspace backend\"",
+    "build": "concurrently \"npm run build --workspace frontend\" "
   },
   "devDependencies": {
     "concurrently": "^8.0.1"

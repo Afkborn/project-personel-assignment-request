@@ -14,7 +14,7 @@ import axios from "axios";
 import logo from "../../assets/logo300.png";
 import "../../styles/Navbar.css";
 
-export default function AYSNavbar() {
+export default function NavigationBar() {
   const [user, setUser] = useState(null);
   const cookies = new Cookies();
   const token = cookies.get("TOKEN");
