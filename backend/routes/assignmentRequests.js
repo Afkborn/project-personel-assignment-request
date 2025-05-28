@@ -14,7 +14,7 @@ router.post(
   Logger("POST assignmentrequests/create"),
   async (req, res) => {
     try {
-      const { currentCourthouse, requestedCourthouse, reason } = req.body;
+      const { currentCourthouse, requestedCourthouse, reason, type } = req.body;
       const userId = req.user.id;
 
       // Zorunlu alanları kontrol et
@@ -67,6 +67,7 @@ router.post(
         requestedCourthouse,
         reason,
         status: "preparing", // Başlangıçta preparing statüsünde
+        type: type || "optional", // Varsayılan olarak isteğe bağlı
       });
 
       await newRequest.save();
@@ -107,7 +108,7 @@ router.put(
   async (req, res) => {
     try {
       const { id } = req.params;
-      const { requestedCourthouse, reason } = req.body;
+      const { requestedCourthouse, reason, type } = req.body;
       const userId = req.user.id;
 
       // Talebi bul
@@ -157,6 +158,9 @@ router.put(
 
       if (reason) {
         request.reason = reason;
+      }
+      if (type) {
+        request.type = type;
       }
 
       await request.save();
@@ -309,23 +313,11 @@ router.get(
     try {
       const userId = req.user.id;
 
-      // Filtreleme ve sıralama için parametreler
-      const { status } = req.query;
-      const sortBy = req.query.sortBy || "createdAt";
-      const sortOrder = req.query.sortOrder === "asc" ? 1 : -1;
-
-      // Filtreleme koşulları
-      const filter = { user: userId };
-      if (
-        status &&
-        ["preparing", "pending", "approved", "rejected"].includes(status)
-      ) {
-        filter.status = status;
-      }
-
       // Talepleri bul
-      const requests = await AssignmentRequest.find(filter)
-        .sort({ [sortBy]: sortOrder })
+      const requests = await AssignmentRequest.find({
+        user: userId,
+      })
+        .sort({ ["createdAt"]: 1 })
         .exec();
 
       // Adliye isimlerini ekle
@@ -448,9 +440,6 @@ router.get(
     }
   }
 );
-
-
-
 
 // Tüm tayin taleplerini listele (Sadece admin)
 router.get("/", auth, Logger("GET assignmentrequests/"), async (req, res) => {

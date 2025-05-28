@@ -24,7 +24,6 @@ import Cookies from "universal-cookie";
 import {
   FaUser,
   FaExchangeAlt,
-  FaCalendarAlt,
   FaCamera,
   FaEdit,
   FaSave,
@@ -676,7 +675,6 @@ export default function PersonelBilgiSistemiDashboard() {
                   <TabPane tabId="2">
                     <AssignmentRequestTabPane userData={userData} />
                   </TabPane>
-
                 </TabContent>
               </Col>
             </Row>

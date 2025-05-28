@@ -39,6 +39,7 @@ export default function AssignmentRequestTabPane({ userData }) {
   const [formData, setFormData] = useState({
     requestedCourthouse: "",
     reason: "",
+    type: "optional", // Varsayılan olarak "optional"
   });
   const [formErrors, setFormErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
@@ -46,7 +47,14 @@ export default function AssignmentRequestTabPane({ userData }) {
   const [currentRequest, setCurrentRequest] = useState(null);
   const [confirmModal, setConfirmModal] = useState(false);
   const [confirmAction, setConfirmAction] = useState(null);
-
+  const types = [
+    { value: "optional", label: "İsteğe bağlı" },
+    { value: "educational", label: "Eğitim" },
+    { value: "health", label: "Sağlık" },
+    { value: "family", label: "Aile" },
+    { value: "life safety", label: "Hayati tehlike" },
+    { value: "other", label: "Diğer" },
+  ];
   useEffect(() => {
     fetchAssignmentRequests();
     fetchCourthouses();
@@ -103,6 +111,7 @@ export default function AssignmentRequestTabPane({ userData }) {
       setFormData({
         requestedCourthouse: "",
         reason: "",
+        type: "optional", // Varsayılan olarak "optional"
       });
       setFormErrors({});
       setAction("create");
@@ -116,11 +125,14 @@ export default function AssignmentRequestTabPane({ userData }) {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
+    console.log("Input değişti:", name, value);
+    console.log("Form verisi öncesi:", formData);
     setFormData({
       ...formData,
       [name]: value,
     });
 
+    console.log("Form verisi sonrası:", formData);
     // Hata mesajını temizle
     if (formErrors[name]) {
       setFormErrors({
@@ -183,6 +195,7 @@ export default function AssignmentRequestTabPane({ userData }) {
           currentCourthouse: userData?.courtId,
           requestedCourthouse: formData.requestedCourthouse,
           reason: formData.reason,
+          type: formData.type || "optional", 
         },
       });
 
@@ -225,6 +238,7 @@ export default function AssignmentRequestTabPane({ userData }) {
         data: {
           requestedCourthouse: formData.requestedCourthouse,
           reason: formData.reason,
+          type: formData.type || "optional", 
         },
       });
 
@@ -246,6 +260,7 @@ export default function AssignmentRequestTabPane({ userData }) {
     setFormData({
       requestedCourthouse: request.requestedCourthouse.toString(),
       reason: request.reason,
+      type: request.type || "optional",
     });
     setAction("edit");
     setModal(true);
@@ -329,6 +344,11 @@ export default function AssignmentRequestTabPane({ userData }) {
       default:
         break;
     }
+  };
+
+  const getLabelForType = (type) => {
+    const typeObj = types.find((t) => t.value === type);
+    return typeObj ? typeObj.label : "Bilinmiyor";
   };
 
   const handleSubmit = (e) => {
@@ -433,6 +453,7 @@ export default function AssignmentRequestTabPane({ userData }) {
                 <th>Mevcut Adliye</th>
                 <th>Talep Edilen Adliye</th>
                 <th>Talep Tarihi</th>
+                <th>Talep Tipi</th>
                 <th>Durum</th>
                 <th>İşlemler</th>
               </tr>
@@ -443,6 +464,7 @@ export default function AssignmentRequestTabPane({ userData }) {
                   <td>{request.currentCourthouseName}</td>
                   <td>{request.requestedCourthouseName}</td>
                   <td>{new Date(request.createdAt).toLocaleDateString()}</td>
+                  <td>{getLabelForType(request.type)}</td>
                   <td>{getStatusBadge(request.status)}</td>
                   <td>
                     {request.status === "preparing" && (
@@ -585,6 +607,23 @@ export default function AssignmentRequestTabPane({ userData }) {
             </FormGroup>
 
             <FormGroup>
+              <Label for="type">Talep Tipi</Label>
+              <Input
+                type="select"
+                name="type"
+                id="type"
+                value={formData.type || "optional"}
+                onChange={handleInputChange}
+              >
+                {types.map((type) => (
+                  <option key={type.value} value={type.value}>
+                    {type.label}
+                  </option>
+                ))}
+              </Input>
+            </FormGroup>
+
+            <FormGroup>
               <Label for="reason">Talep Sebebi*</Label>
               <Input
                 type="textarea"
@@ -599,8 +638,7 @@ export default function AssignmentRequestTabPane({ userData }) {
                 <FormFeedback>{formErrors.reason}</FormFeedback>
               )}
               <small className="text-muted">
-                Tayin talebinizin sebebini detaylı olarak açıklayınız (en az 10
-                karakter)
+                Tayin talebinizin sebebini detaylı olarak açıklayınız
               </small>
             </FormGroup>
           </ModalBody>

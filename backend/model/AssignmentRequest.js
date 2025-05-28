@@ -19,6 +19,24 @@ const AssignmentRequestSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    type: {
+      type: String,
+      enum: [
+        "optional",
+        "educational",
+        "health",
+        "family",
+        "life safety",
+        "other",
+      ],
+      default: "optional",
+      // optional: İsteğe bağlı
+      // educational: Eğitim
+      // health: Sağlık
+      // family: Aile
+      // life safety: Hayati tehlike
+      // other: Diğer
+    },
     status: {
       type: String,
       enum: ["preparing", "pending", "approved", "rejected"],
@@ -51,8 +69,7 @@ const AssignmentRequestSchema = new mongoose.Schema(
       default: null,
     },
 
-
-    // belge ekleme, talep tipi eklenebilir. 
+    // belge ekleme, talep tipi eklenebilir.
   },
   {
     timestamps: true,
