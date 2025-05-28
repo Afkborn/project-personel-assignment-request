@@ -286,7 +286,10 @@ function Login() {
             <div className="px-4 py-5 p-md-5">
               <h3 className="fw-bold mb-4">Adliye Yönetim Sistemi</h3>
               <p className="mb-4">
-                Adliye Yönetim Sistemi uygulaması sayesinde
+                Demo için  oluşturulmuş bir giriş formudur.{" "}
+                <br />
+                Sadece sistemin test edilebilmesi amacı ile hazırlanmıştır.
+                Adalet Bakanlığı API ve veritabanı ile entegre değildir.
               </p>
             </div>
           </Col>

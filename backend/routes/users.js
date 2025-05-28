@@ -548,24 +548,30 @@ router.post("/validate-token", async (request, response) => {
 });
 
 // get roles from RoleList
-router.get(
-  "/roles",
-  Logger("GET users/roles"),
-  async (request, response) => {
-    try {
-      // Rol listesini döndür
-      response.status(200).send({
-        roles: RoleList,
-      });
-    } catch (error) {
-      console.error(getTimeForLog() + "Get roles error:", error);
-      response.status(500).send({
-        message: "Roller alınırken bir hata oluştu",
-        error: error.message,
-      });
-    }
-  }
-);
+router.get("/roles", Logger("GET users/roles"), async (request, response) => {
+  try {
+    // Rol listesinden selectable false olanları filtrele
+    const filteredRoleList = RoleList.filter((role) => role.selectable);
 
+    const roles = filteredRoleList.map((role) => {
+      return {
+        id: role.id,
+        label: role.label,
+        name: role.name 
+      };
+    });
+
+    // Rol listesini döndür
+    response.status(200).send({
+      roles
+    });
+  } catch (error) {
+    console.error(getTimeForLog() + "Get roles error:", error);
+    response.status(500).send({
+      message: "Roller alınırken bir hata oluştu",
+      error: error.message,
+    });
+  }
+});
 
 module.exports = router;

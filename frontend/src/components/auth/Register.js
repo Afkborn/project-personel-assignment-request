@@ -22,7 +22,6 @@ import Cookies from "universal-cookie";
 const cookies = new Cookies();
 
 export default function Register() {
-  // Form state
   const [formData, setFormData] = useState({
     sicilNo: "",
     ad: "",
@@ -31,17 +30,11 @@ export default function Register() {
     passwordConfirm: "",
     email: "",
     telefon: "",
-    tckn: "",
-    dogumTarihi: "",
-    dogumYeri: "",
-    kanGrubu: "",
-    keyboard: "",
-    meslekBaslangic: "",
     adliye: 0,
     birim: "",
+    roles: ["user"], // Varsayılan rol
   });
 
-  // State için kısaltma
   const {
     sicilNo,
     ad,
@@ -50,23 +43,17 @@ export default function Register() {
     passwordConfirm,
     email,
     telefon,
-    tckn,
-    dogumTarihi,
-    dogumYeri,
-    kanGrubu,
-    keyboard,
-    meslekBaslangic,
     adliye,
     birim,
   } = formData;
 
-  // UI states
   const [error, setError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [adliyeListesi, setAdliyeListesi] = useState([]);
+  const [unvanListesi, setUnvanListesi] = useState([]);
   const [validationErrors, setValidationErrors] = useState({});
 
   const navigate = useNavigate();
@@ -82,6 +69,18 @@ export default function Register() {
       })
       .catch((error) => {
         console.error("Adliye listesi yüklenirken hata:", error);
+      });
+
+    // Unvan listesini getir
+    axios
+      .get("/api/users/roles")
+      .then((response) => {
+        if (response.data && response.data.roles) {
+          setUnvanListesi(response.data.roles);
+        }
+      })
+      .catch((error) => {
+        console.error("Unvan listesi yüklenirken hata:", error);
       });
 
     // Eğer token varsa ve geçerliyse ana sayfaya yönlendir
@@ -166,7 +165,10 @@ export default function Register() {
     }
 
     // E-posta kontrolü (opsiyonel)
-    if (email && !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)) {
+    if (
+      email &&
+      !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)
+    ) {
       errors.email = "Geçerli bir e-posta adresi giriniz";
       isValid = false;
     }
@@ -174,12 +176,6 @@ export default function Register() {
     // Telefon kontrolü (opsiyonel)
     if (telefon && !/^\d{10}$/.test(telefon)) {
       errors.telefon = "Telefon numarası 10 haneli olmalıdır (örn: 5301234567)";
-      isValid = false;
-    }
-
-    // TCKN kontrolü (opsiyonel)
-    if (tckn && !/^\d{11}$/.test(tckn)) {
-      errors.tckn = "TC Kimlik Numarası 11 haneli olmalıdır";
       isValid = false;
     }
 
@@ -195,7 +191,7 @@ export default function Register() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       setError(true);
       setErrorMessage("Lütfen formdaki hataları düzeltiniz");
@@ -217,18 +213,13 @@ export default function Register() {
       name: ad.trim(),
       surname: soyad.trim(),
       password: password.trim(),
-      roles: ["user"], // Varsayılan rol
+      roles: formData.roles || ["user"], // Seçilen roller (veya varsayılan user rolü)
       email: email || undefined,
       phoneNumber: telefon || undefined,
-      tckn: tckn || undefined,
-      birthDate: dogumTarihi || undefined,
-      birthPlace: dogumYeri || undefined,
-      bloodType: kanGrubu || "",
-      keyboardType: keyboard || "",
-      careerStartDate: meslekBaslangic || undefined,
       courtId: parseInt(adliye),
       unitName: birim || "Bilinmiyor",
     };
+    // console.log("data:", userData);
 
     axios({
       method: "POST",
@@ -241,7 +232,7 @@ export default function Register() {
       .then((result) => {
         setSuccess(true);
         setLoading(false);
-        // 3 saniye sonra login sayfasına yönlendir
+
         setTimeout(() => {
           navigate("/login");
         }, 3000);
@@ -249,7 +240,8 @@ export default function Register() {
       .catch((error) => {
         setLoading(false);
         const message =
-          error.response?.data?.message || "Kayıt işlemi sırasında bir hata oluştu";
+          error.response?.data?.message ||
+          "Kayıt işlemi sırasında bir hata oluştu";
         setError(true);
         setErrorMessage(message);
       });
@@ -270,7 +262,9 @@ export default function Register() {
             </div>
             <Alert color="success">
               <h4>Kayıt Başarılı!</h4>
-              <p>Hesabınız oluşturuldu. Giriş sayfasına yönlendiriliyorsunuz...</p>
+              <p>
+                Hesabınız oluşturuldu. Giriş sayfasına yönlendiriliyorsunuz...
+              </p>
             </Alert>
             <Button color="primary" onClick={() => navigate("/login")}>
               Giriş Sayfasına Git
@@ -285,12 +279,15 @@ export default function Register() {
     <Container className="my-5">
       <Card className="login-card">
         <Row className="g-0">
-          <Col md="5" className="system-info text-white d-flex align-items-center">
+          <Col
+            md="5"
+            className="system-info text-white d-flex align-items-center"
+          >
             <div className="px-4 py-5 p-md-5">
               <h3 className="fw-bold mb-4">Kayıt Formu</h3>
               <p className="mb-4">
-                Adliye Yönetim Sistemi'ne kayıt olmak için formu doldurunuz.
-                
+                Demo aşamasında test amacıyla oluşturulmuş bir kayıt formudur. <br />
+                Sadece sistemin test edilebilmesi amacı ile hazırlanmıştır.
               </p>
             </div>
           </Col>
@@ -342,7 +339,7 @@ export default function Register() {
                       </small>
                     </FormGroup>
                   </Col>
-                  
+
                   <Col md="6">
                     <FormGroup>
                       <Label for="ad">Ad *</Label>
@@ -356,7 +353,7 @@ export default function Register() {
                       <FormFeedback>{validationErrors.ad}</FormFeedback>
                     </FormGroup>
                   </Col>
-                  
+
                   <Col md="6">
                     <FormGroup>
                       <Label for="soyad">Soyad *</Label>
@@ -370,7 +367,7 @@ export default function Register() {
                       <FormFeedback>{validationErrors.soyad}</FormFeedback>
                     </FormGroup>
                   </Col>
-                  
+
                   <Col md="6">
                     <FormGroup>
                       <Label for="password">Şifre *</Label>
@@ -385,7 +382,7 @@ export default function Register() {
                       <FormFeedback>{validationErrors.password}</FormFeedback>
                     </FormGroup>
                   </Col>
-                  
+
                   <Col md="6">
                     <FormGroup>
                       <Label for="passwordConfirm">Şifre Tekrar *</Label>
@@ -397,10 +394,12 @@ export default function Register() {
                         onChange={handleChange}
                         invalid={!!validationErrors.passwordConfirm}
                       />
-                      <FormFeedback>{validationErrors.passwordConfirm}</FormFeedback>
+                      <FormFeedback>
+                        {validationErrors.passwordConfirm}
+                      </FormFeedback>
                     </FormGroup>
                   </Col>
-                  
+
                   <div className="d-flex align-items-center mb-3">
                     <Input
                       type="checkbox"
@@ -413,7 +412,6 @@ export default function Register() {
                     </Label>
                   </div>
 
-                  {/* İletişim Bilgileri */}
                   <Col md="6">
                     <FormGroup>
                       <Label for="email">E-posta</Label>
@@ -429,7 +427,7 @@ export default function Register() {
                       <FormFeedback>{validationErrors.email}</FormFeedback>
                     </FormGroup>
                   </Col>
-                  
+
                   <Col md="6">
                     <FormGroup>
                       <Label for="telefon">Telefon</Label>
@@ -445,100 +443,6 @@ export default function Register() {
                     </FormGroup>
                   </Col>
 
-                  {/* Kişisel Bilgiler */}
-                  <Col md="6">
-                    <FormGroup>
-                      <Label for="tckn">TC Kimlik Numarası</Label>
-                      <Input
-                        id="tckn"
-                        name="tckn"
-                        value={tckn}
-                        onChange={handleChange}
-                        invalid={!!validationErrors.tckn}
-                      />
-                      <FormFeedback>{validationErrors.tckn}</FormFeedback>
-                    </FormGroup>
-                  </Col>
-                  
-                  <Col md="6">
-                    <FormGroup>
-                      <Label for="dogumTarihi">Doğum Tarihi</Label>
-                      <Input
-                        id="dogumTarihi"
-                        name="dogumTarihi"
-                        value={dogumTarihi}
-                        type="date"
-                        onChange={handleChange}
-                      />
-                    </FormGroup>
-                  </Col>
-                  
-                  <Col md="6">
-                    <FormGroup>
-                      <Label for="dogumYeri">Doğum Yeri</Label>
-                      <Input
-                        id="dogumYeri"
-                        name="dogumYeri"
-                        value={dogumYeri}
-                        onChange={handleChange}
-                      />
-                    </FormGroup>
-                  </Col>
-                  
-                  <Col md="6">
-                    <FormGroup>
-                      <Label for="kanGrubu">Kan Grubu</Label>
-                      <Input
-                        id="kanGrubu"
-                        name="kanGrubu"
-                        type="select"
-                        value={kanGrubu}
-                        onChange={handleChange}
-                      >
-                        <option value="">Seçiniz</option>
-                        <option value="A+">A+</option>
-                        <option value="A-">A-</option>
-                        <option value="B+">B+</option>
-                        <option value="B-">B-</option>
-                        <option value="AB+">AB+</option>
-                        <option value="AB-">AB-</option>
-                        <option value="0+">0+</option>
-                        <option value="0-">0-</option>
-                      </Input>
-                    </FormGroup>
-                  </Col>
-
-                  {/* Meslek Bilgileri */}
-                  <Col md="6">
-                    <FormGroup>
-                      <Label for="keyboard">Klavye Tipi</Label>
-                      <Input
-                        id="keyboard"
-                        name="keyboard"
-                        type="select"
-                        value={keyboard}
-                        onChange={handleChange}
-                      >
-                        <option value="">Seçiniz</option>
-                        <option value="F">F Klavye</option>
-                        <option value="Q">Q Klavye</option>
-                      </Input>
-                    </FormGroup>
-                  </Col>
-                  
-                  <Col md="6">
-                    <FormGroup>
-                      <Label for="meslekBaslangic">Meslek Başlangıç Tarihi</Label>
-                      <Input
-                        id="meslekBaslangic"
-                        name="meslekBaslangic"
-                        value={meslekBaslangic}
-                        type="date"
-                        onChange={handleChange}
-                      />
-                    </FormGroup>
-                  </Col>
-                  
                   <Col md="6">
                     <FormGroup>
                       <Label for="adliye">Adliye *</Label>
@@ -551,9 +455,9 @@ export default function Register() {
                         invalid={!!validationErrors.adliye}
                       >
                         <option value="0">Seçiniz</option>
-                        {adliyeListesi.map(courthouse => (
-                          <option 
-                            key={courthouse.plateCode} 
+                        {adliyeListesi.map((courthouse) => (
+                          <option
+                            key={courthouse.plateCode}
                             value={courthouse.plateCode}
                           >
                             {courthouse.name}
@@ -563,7 +467,7 @@ export default function Register() {
                       <FormFeedback>{validationErrors.adliye}</FormFeedback>
                     </FormGroup>
                   </Col>
-                  
+
                   <Col md="6">
                     <FormGroup>
                       <Label for="birim">Birim Adı</Label>
@@ -574,6 +478,43 @@ export default function Register() {
                         onChange={handleChange}
                         placeholder="Örn: Ceza Dairesi"
                       />
+                    </FormGroup>
+                  </Col>
+
+                  <Col md="12">
+                    <FormGroup>
+                      <Label for="unvan">Unvan</Label>
+                      <Input
+                        id="unvan"
+                        name="unvan"
+                        type="select"
+                        value={formData.unvan || ""}
+                        onChange={(e) => {
+                          const selectedRole = e.target.value; // 'admin', 'user' gibi rol name'i
+                          console.log("Seçilen rol:", selectedRole);
+                          if (selectedRole) {
+                            setFormData({
+                              ...formData,
+                              unvan: selectedRole, // Unvanı formData içinde sakla
+                              roles: [selectedRole], // Rol değerini roles dizisi içinde sakla
+                            });
+                          } else {
+                            setFormData({
+                              ...formData,
+                              unvan: "", // Unvanı temizle
+                              roles: ["user"], // Seçim yapılmazsa varsayılan user rolü
+                            });
+                          }
+                        }}
+                        placeholder="Unvan Seçiniz"
+                      >
+                        <option value="">Unvan Seçiniz</option>
+                        {unvanListesi &&
+                          unvanListesi.map((unvan) => (
+                            <option value={unvan.name}>{unvan.label}</option>
+                          ))}
+                      </Input>
+                      <FormFeedback>{validationErrors.unvan}</FormFeedback>
                     </FormGroup>
                   </Col>
 
@@ -598,7 +539,7 @@ export default function Register() {
                       )}
                     </Button>
                   </Col>
-                  
+
                   <Col md="12" className="text-center mt-3">
                     <p>
                       Zaten hesabınız var mı?{" "}
