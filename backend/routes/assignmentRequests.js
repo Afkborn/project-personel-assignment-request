@@ -6,6 +6,10 @@ const auth = require("../middleware/auth");
 const getTimeForLog = require("../common/time");
 const Logger = require("../middleware/logger");
 const { CourthouseList } = require("../constants/CourthouseList");
+const upload = require("../middleware/upload");
+const filesPath = process.env.MEDIA_FILES_FOLDER;
+const fs = require("fs");
+const path = require("path");
 
 // Yeni tayin talebi oluştur
 router.post(
@@ -269,19 +273,22 @@ router.delete(
       const userId = req.user.id;
 
       // Talebi bul
-      const request = await AssignmentRequest.findOne({
+      const assignmentRequest = await AssignmentRequest.findOne({
         _id: id,
         user: userId,
       });
 
-      if (!request) {
+      if (!assignmentRequest) {
         return res.status(404).json({
           message: "Tayin talebi bulunamadı",
         });
       }
 
       // Sadece 'preparing' veya 'pending' durumundayken iptal edilebilir
-      if (request.status !== "preparing" && request.status !== "pending") {
+      if (
+        assignmentRequest.status !== "preparing" &&
+        assignmentRequest.status !== "pending"
+      ) {
         return res.status(400).json({
           message:
             "Sadece hazırlanma aşamasındaki veya bekleyen tayin talepleri iptal edilebilir",
@@ -314,14 +321,14 @@ router.get(
       const userId = req.user.id;
 
       // Talepleri bul
-      const requests = await AssignmentRequest.find({
+      const assignmentRequest = await AssignmentRequest.find({
         user: userId,
       })
         .sort({ ["createdAt"]: 1 })
         .exec();
 
       // Adliye isimlerini ekle
-      const requestsWithCourtNames = requests.map((request) => {
+      const requestsWithCourtNames = assignmentRequest.map((request) => {
         const currentCourthouseName =
           CourthouseList.find(
             (court) => court.plateCode === parseInt(request.currentCourthouse)
@@ -340,7 +347,7 @@ router.get(
 
       res.status(200).json({
         message: "Tayin talepleri başarıyla listelendi",
-        count: requests.length,
+        count: assignmentRequest.length,
         requests: requestsWithCourtNames,
       });
     } catch (error) {
@@ -370,27 +377,27 @@ router.get(
       const isAdmin = req.user.roles.includes("admin");
 
       // Talebi bul
-      let request;
+      let assignmentRequest;
 
       if (isAdmin) {
         // Admin ise herhangi bir talebi görüntüleyebilir
-        request = await AssignmentRequest.findById(id);
+        assignmentRequest = await AssignmentRequest.findById(id);
       } else {
         // Normal kullanıcı ise sadece kendi taleplerini görüntüleyebilir
-        request = await AssignmentRequest.findOne({
+        assignmentRequest = await AssignmentRequest.findOne({
           _id: id,
           user: userId,
         });
       }
 
-      if (!request) {
+      if (!assignmentRequest) {
         return res.status(404).json({
           message: "Tayin talebi bulunamadı",
         });
       }
 
       // İlgili kullanıcı bilgilerini getir
-      const user = await User.findById(request.user).select(
+      const user = await User.findById(assignmentRequest.user).select(
         "name surname registrationNumber"
       );
 
@@ -398,32 +405,34 @@ router.get(
       let approvedByUser = null;
       let rejectedByUser = null;
 
-      if (request.approvedBy) {
-        approvedByUser = await User.findById(request.approvedBy).select(
-          "name surname registrationNumber"
-        );
+      if (assignmentRequest.approvedBy) {
+        approvedByUser = await User.findById(
+          assignmentRequest.approvedBy
+        ).select("name surname registrationNumber");
       }
 
-      if (request.rejectedBy) {
-        rejectedByUser = await User.findById(request.rejectedBy).select(
-          "name surname registrationNumber"
-        );
+      if (assignmentRequest.rejectedBy) {
+        rejectedByUser = await User.findById(
+          assignmentRequest.rejectedBy
+        ).select("name surname registrationNumber");
       }
 
       // Adliye isimlerini ekle
       const currentCourthouseName =
         CourthouseList.find(
-          (court) => court.plateCode === parseInt(request.currentCourthouse)
+          (court) =>
+            court.plateCode === parseInt(assignmentRequest.currentCourthouse)
         )?.name || "Bilinmiyor";
       const requestedCourthouseName =
         CourthouseList.find(
-          (court) => court.plateCode === parseInt(request.requestedCourthouse)
+          (court) =>
+            court.plateCode === parseInt(assignmentRequest.requestedCourthouse)
         )?.name || "Bilinmiyor";
 
       res.status(200).json({
         message: "Tayin talebi başarıyla getirildi",
         request: {
-          ...request.toObject(),
+          ...assignmentRequest.toObject(),
           currentCourthouseName,
           requestedCourthouseName,
           user,
@@ -537,47 +546,49 @@ router.put(
       const { id } = req.params;
 
       // Talebi bul
-      const request = await AssignmentRequest.findById(id);
+      const assignmentRequest = await AssignmentRequest.findById(id);
 
-      if (!request) {
+      if (!assignmentRequest) {
         return res.status(404).json({
           message: "Tayin talebi bulunamadı",
         });
       }
 
       // Sadece bekleyen talepler onaylanabilir
-      if (request.status !== "pending") {
+      if (assignmentRequest.status !== "pending") {
         return res.status(400).json({
           message: "Sadece bekleyen talepler onaylanabilir",
         });
       }
 
       // Talebi onayla
-      request.status = "approved";
-      request.approvedBy = req.user.id;
-      request.approvedAt = new Date();
+      assignmentRequest.status = "approved";
+      assignmentRequest.approvedBy = req.user.id;
+      assignmentRequest.approvedAt = new Date();
 
-      await request.save();
+      await assignmentRequest.save();
 
       // Adliye isimlerini ekle
       const currentCourthouseName =
         CourthouseList.find(
-          (court) => court.plateCode === parseInt(request.currentCourthouse)
+          (court) =>
+            court.plateCode === parseInt(assignmentRequest.currentCourthouse)
         )?.name || "Bilinmiyor";
       const requestedCourthouseName =
         CourthouseList.find(
-          (court) => court.plateCode === parseInt(request.requestedCourthouse)
+          (court) =>
+            court.plateCode === parseInt(assignmentRequest.requestedCourthouse)
         )?.name || "Bilinmiyor";
 
       // Kullanıcının adliye bilgisini güncelle
-      await User.findByIdAndUpdate(request.user, {
-        courtId: request.requestedCourthouse,
+      await User.findByIdAndUpdate(assignmentRequest.user, {
+        courtId: assignmentRequest.requestedCourthouse,
       });
 
       res.status(200).json({
         message: "Tayin talebi başarıyla onaylandı",
         request: {
-          ...request.toObject(),
+          ...assignmentRequest.toObject(),
           currentCourthouseName,
           requestedCourthouseName,
         },
@@ -616,43 +627,45 @@ router.put(
       }
 
       // Talebi bul
-      const request = await AssignmentRequest.findById(id);
+      const assignmentRequest = await AssignmentRequest.findById(id);
 
-      if (!request) {
+      if (!assignmentRequest) {
         return res.status(404).json({
           message: "Tayin talebi bulunamadı",
         });
       }
 
       // Sadece bekleyen talepler reddedilebilir
-      if (request.status !== "pending") {
+      if (assignmentRequest.status !== "pending") {
         return res.status(400).json({
           message: "Sadece bekleyen talepler reddedilebilir",
         });
       }
 
       // Talebi reddet
-      request.status = "rejected";
-      request.rejectionReason = rejectionReason;
-      request.rejectedBy = req.user.id;
-      request.rejectedAt = new Date();
+      assignmentRequest.status = "rejected";
+      assignmentRequest.rejectionReason = rejectionReason;
+      assignmentRequest.rejectedBy = req.user.id;
+      assignmentRequest.rejectedAt = new Date();
 
-      await request.save();
+      await assignmentRequest.save();
 
       // Adliye isimlerini ekle
       const currentCourthouseName =
         CourthouseList.find(
-          (court) => court.plateCode === parseInt(request.currentCourthouse)
+          (court) =>
+            court.plateCode === parseInt(assignmentRequest.currentCourthouse)
         )?.name || "Bilinmiyor";
       const requestedCourthouseName =
         CourthouseList.find(
-          (court) => court.plateCode === parseInt(request.requestedCourthouse)
+          (court) =>
+            court.plateCode === parseInt(assignmentRequest.requestedCourthouse)
         )?.name || "Bilinmiyor";
 
       res.status(200).json({
         message: "Tayin talebi başarıyla reddedildi",
         request: {
-          ...request.toObject(),
+          ...assignmentRequest.toObject(),
           currentCourthouseName,
           requestedCourthouseName,
         },
@@ -661,6 +674,52 @@ router.put(
       console.error(getTimeForLog() + "Tayin talebi reddetme hatası:", error);
       res.status(500).json({
         message: "Tayin talebi reddedilirken bir hata oluştu",
+        error: error.message,
+      });
+    }
+  }
+);
+
+// tayin talebi evraklarını sunucuya yükle
+router.post(
+  "/upload",
+  auth,
+  upload.array("documents", 5), // Maksimum 5 dosya yüklenebilir
+  Logger("POST assignmentrequests/upload/:id"),
+  async (req, res) => {
+    try {
+      const userId = req.user.id;
+
+      // Evrakları kontrol et
+      if (!req.files || req.files.length === 0) {
+        return res.status(400).json({
+          message: "En az bir evrak yüklenmelidir",
+        });
+      }
+
+      // Evrakları talebe ekle
+      const documents = req.files.map((file) => {
+        // Dosya adını ve yolunu kaydet
+        console.log(file);
+        const oldPath = file.path;
+        const fileName = userId + "-" + file.originalname.replace(/\s+/g, "_");
+        const newPath = path.join(filesPath, fileName);
+        fs.copyFileSync(oldPath, newPath); // Dosyayı media klasörüne kopyala
+        return fileName 
+      });
+
+      // dosya yollarını response olarak dön
+      res.status(200).json({
+        message: "Evraklar başarıyla yüklendi",
+        documents: documents.map((doc) => ({
+          filename: doc,
+          url: `${filesPath}/${doc}`,
+        })),
+      });
+    } catch (error) {
+      console.error(getTimeForLog() + "Evrak yükleme hatası:", error);
+      res.status(500).json({
+        message: "Evrak yüklenirken bir hata oluştu",
         error: error.message,
       });
     }

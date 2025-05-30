@@ -23,3 +23,8 @@ backend/dist/
 # IDE / Editör
 .vscode/
 .idea/
+
+
+
+# Test File
+testFiles

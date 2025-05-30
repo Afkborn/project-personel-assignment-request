@@ -450,6 +450,7 @@ export default function AssignmentRequestTabPane({ userData }) {
           <Table hover bordered className="mb-4">
             <thead>
               <tr>
+                <th>Başvuru No</th>
                 <th>Mevcut Adliye</th>
                 <th>Talep Edilen Adliye</th>
                 <th>Talep Tarihi</th>
@@ -461,6 +462,7 @@ export default function AssignmentRequestTabPane({ userData }) {
             <tbody>
               {assignmentRequests.map((request) => (
                 <tr key={request._id}>
+                  <td>{request.applicationNumber}</td>
                   <td>{request.currentCourthouseName}</td>
                   <td>{request.requestedCourthouseName}</td>
                   <td>{new Date(request.createdAt).toLocaleDateString()}</td>
@@ -650,7 +652,7 @@ export default function AssignmentRequestTabPane({ userData }) {
             >
               İptal
             </Button>
-            <Button color="primary" type="submit" disabled={submitting}>
+            <Button color="success" type="submit" disabled={submitting}>
               {submitting ? (
                 <>
                   <Spinner size="sm" className="me-2" />
@@ -691,10 +693,10 @@ export default function AssignmentRequestTabPane({ userData }) {
             Vazgeç
           </Button>
           <Button
-            color={confirmAction?.type === "cancel" ? "danger" : "primary"}
+            color={confirmAction?.type === "cancel" ? "danger" : "success"}
             onClick={handleConfirmAction}
           >
-            {confirmAction?.type === "cancel" ? "İptal Et" : "Onaya Sun"}
+            {confirmAction?.type === "cancel" ? "Talebi İptal Et" : "Onaya Sun"}
           </Button>
         </ModalFooter>
       </Modal>

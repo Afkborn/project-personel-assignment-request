@@ -5,6 +5,8 @@ const fs = require("fs");
 const mediaPath = process.env.MEDIA_ROOT_FOLDER;
 const mediaTempPath = process.env.MEDIA_TEMP_FOLDER;
 const mediaAvatarPath = process.env.MEDIA_AVATAR_FOLDER;
+const mediaFilesPath = process.env.MEDIA_FILES_FOLDER;
+
 // Eğer media klasörü yoksa oluştur
 if (!fs.existsSync(mediaPath)) {
   fs.mkdirSync(mediaPath, { recursive: true });
@@ -17,6 +19,11 @@ if (!fs.existsSync(mediaTempPath)) {
 // Eğer media/avatar klasörü yoksa oluştur
 if (!fs.existsSync(mediaAvatarPath)) {
   fs.mkdirSync(mediaAvatarPath, { recursive: true });
+}
+
+// Eğer medaia/files klasörü yoksa oluştur
+if (!fs.existsSync(mediaFilesPath)) {
+  fs.mkdirSync(mediaFilesPath, { recursive: true });
 }
 
 // Dosya depolama ayarları
