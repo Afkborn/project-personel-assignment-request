@@ -1,0 +1,15 @@
+[[redirects]]
+  from = "/api/*"
+  to = "https://personel-assignment-request.bilgehan26.keenetic.pro/api/:splat"
+  status = 200
+  force = true
+  headers = {X-From = "Netlify"}
+
+
+
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+

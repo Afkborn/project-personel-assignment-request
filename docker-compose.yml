@@ -1,0 +1,67 @@
+services:
+  frontend:
+    build: ./frontend
+    ports:
+      - "2626:2626"
+    depends_on:
+      - backend
+    environment:
+      REACT_APP_BACKEND_URL: "http://backend:8080"
+
+  backend:
+    build: ./backend
+    ports:
+      - "8080:8080"
+    environment:
+      PORT: 8080
+      MONGO_DB_CONNECTION: mongodb://mongo:27017/project-komisyon-portal
+      SALT_CODE: "SALTCODE"
+      REDIS_URL: redis://redis:6379  
+      RANDOM_TOKEN: "RANDOM_TOKEN"
+      DEFAULT_ADMIN_REGISTRATION_NUMBER: 1000000
+      DEFAULT_ADMIN_PASSWORD: "admin123"
+      MEDIA_ROOT_FOLDER: "/app/media"
+      MEDIA_TEMP_FOLDER: "/app/media/temp"
+      MEDIA_AVATAR_FOLDER: "/app/media/avatars"
+      MEDIA_FILES_FOLDER: "/app/media/files"
+
+      MAX_LOGIN_ATTEMPTS: 5 
+      LOCKOUT_DURATION: 300 # 5 minutes
+      
+    depends_on:
+      - mongo
+      - redis 
+    volumes:
+      - backend-logs:/app/logs
+
+
+  mongo:
+    image: mongo
+    ports:
+      - "26026:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  redis:
+    image: redis:latest
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+
+  backup:
+    image: mongo:6.0
+    volumes:
+      - ./backup.sh:/app/backup.sh
+      - D:/project-personel-assignment-request-backup:/backup 
+    entrypoint: >
+      /bin/sh -c "while true; do /app/backup.sh; sleep 3600; done"
+    depends_on:
+      - mongo
+
+volumes:
+  mongo-data:
+  backend-logs:
+  mongo-backup:
+  redis-data:

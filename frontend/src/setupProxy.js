@@ -5,8 +5,7 @@ const { createProxyMiddleware } = require("http-proxy-middleware");
  * Asıl amaç frontend ve backend'in farklı portlarda çalışması durumunda CORS sorununu çözmektir.
  */
 module.exports = function (app) {
-  const target =
-    process.env.REACT_APP_BACKEND_URL || "http://localhost:2626";
+  const target = process.env.REACT_APP_BACKEND_URL || "http://localhost:2626";
   app.use(
     "/api",
     createProxyMiddleware({
@@ -18,7 +17,6 @@ module.exports = function (app) {
     })
   );
 
-  
   app.use(
     "/media",
     createProxyMiddleware({
@@ -29,5 +27,5 @@ module.exports = function (app) {
       },
     })
   );
-
+  
 };

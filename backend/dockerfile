@@ -1,0 +1,21 @@
+FROM node:18
+WORKDIR /app
+
+
+# Loglar için klasör oluştur
+RUN mkdir -p /app/logs
+
+# Gerekli paketleri yükleyin
+COPY package*.json ./
+RUN npm install --only=production
+
+# Uygulama dosyalarını kopyalayın
+COPY . .
+
+RUN mkdir -p /app/media/temp \
+    && mkdir -p /app/media/avatars \
+    && mkdir -p /app/media/files
+
+
+EXPOSE 8080
+CMD ["npm", "start"]
