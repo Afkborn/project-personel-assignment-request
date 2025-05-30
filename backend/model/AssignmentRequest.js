@@ -111,6 +111,8 @@ const AssignmentRequestSchema = new mongoose.Schema(
       },
     },
 
+
+    // UYAP'da kullanılan onay listesi gibi bir alan yapılabilir vaktim kalırsa bakacağım.
   },
   {
     timestamps: true,

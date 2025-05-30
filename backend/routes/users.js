@@ -24,7 +24,7 @@ const { CourthouseList } = require("../constants/CourthouseList");
 router.post("/login", Logger("POST users/login"), async (request, response) => {
   try {
     // Request body'den kullanıcı bilgilerini al
-    const { registrationNumber, password } = request.body;
+    const { registrationNumber, password, rememberMe } = request.body;
 
     // Zorunlu alanları kontrol et
     if (!registrationNumber || !password) {
@@ -33,17 +33,13 @@ router.post("/login", Logger("POST users/login"), async (request, response) => {
       });
     }
 
-    // Kullanıcıyı veritabanında ara
     const user = await User.findOne({ registrationNumber });
-
-    // Kullanıcı bulunamazsa hata döndür
     if (!user) {
       return response.status(401).send({
         message: "Geçersiz kimlik bilgileri",
       });
     }
 
-    // Şifreyi hash'leyip karşılaştır
     const hashedPassword = toSHA256(password);
 
     if (user.password !== hashedPassword) {
@@ -53,6 +49,9 @@ router.post("/login", Logger("POST users/login"), async (request, response) => {
     }
 
     // JWT token oluştur
+    // Eğer rememberMe true ise token süresini 7 gün yap, değilse 24 saat
+    const tokenExpiry = rememberMe ? "7d" : "24h";
+    console.log("Token süresi:", tokenExpiry);
     const token = jwt.sign(
       {
         id: user._id,
@@ -60,7 +59,9 @@ router.post("/login", Logger("POST users/login"), async (request, response) => {
         roles: user.roles,
       },
       process.env.RANDOM_TOKEN,
-      { expiresIn: "24h" }
+      {
+        expiresIn: tokenExpiry,
+      }
     );
 
     // Kullanıcı bilgilerini ve token'ı döndür
@@ -93,8 +94,6 @@ router.post("/login", Logger("POST users/login"), async (request, response) => {
 });
 
 // Kullanıcı kaydı
-// Normal şartlar altında Adalet Bakanlığı Verisine sahip olduğumuz için bu endpoint'i kullanmıyoruz.
-// Ancak prototip aşamasında kullanıcı kaydı için kullanılabilir.
 router.post(
   "/register",
   Logger("POST users/register"),
@@ -196,10 +195,7 @@ router.post(
 // Kullanıcı detaylarını getir
 router.get("/me", auth, Logger("GET users/me"), async (request, response) => {
   try {
-    // Kullanıcı kimliğini auth middleware'den al
     const userId = request.user.id;
-
-    // Kullanıcıyı veritabanından getir (şifre hariç)
     let user = await User.findById(userId).select("-password");
 
     if (!user) {
@@ -207,7 +203,7 @@ router.get("/me", auth, Logger("GET users/me"), async (request, response) => {
         message: "Kullanıcı bulunamadı",
       });
     }
-    user = user.toObject(); // Mongoose dokümanını düz JavaScript nesnesine çevir
+    user = user.toObject(); // Mongoose dokümanını düz JavaScript nesnesine çevir, ekleme çıkartmak yapmak için bunu yapıyoruyz.
 
     // user.courtIdyi  CourthouseList'ten adliye bilgisi ile doldur
     const courthouse = CourthouseList.find(
@@ -256,10 +252,9 @@ router.put(
       const userId = request.user.id;
       const updateData = request.body;
 
-      // Güvenlik için şifre ve roller gibi hassas alanları kaldır
       delete updateData.password;
       delete updateData.roles;
-      delete updateData.registrationNumber; // Sicil numarası değiştirilemez
+      delete updateData.registrationNumber;
 
       // Kullanıcıyı güncelle
       const updatedUser = await User.findByIdAndUpdate(
@@ -467,7 +462,7 @@ router.post(
           request.headers["x-forwarded-for"] || request.socket.remoteAddress;
         console.log(
           getTimeForLog() + "User",
-          request.user.username,
+          request.user.registrationNumber,
           "logged out [" + clientIP + "]"
         );
 
@@ -515,7 +510,7 @@ router.post("/validate-token", async (request, response) => {
 
     try {
       // Token'ı doğrula
-      const decodedToken = jwt.verify(token, "RANDOM-TOKEN");
+      const decodedToken = jwt.verify(token, process.env.RANDOM_TOKEN);
 
       // console.log(
       //   getTimeForLog() +

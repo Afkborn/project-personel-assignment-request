@@ -61,6 +61,7 @@ function Login() {
     data: {
       registrationNumber: sicilNo,
       password: sifre,
+      rememberMe: rememberMe,
     },
     headers: {
       "Content-Type": "application/json",
@@ -118,6 +119,7 @@ function Login() {
       data: {
         registrationNumber: numericSicilNo,
         password: sifre.trim(),
+        rememberMe: rememberMe,
       },
     };
 
@@ -132,8 +134,8 @@ function Login() {
         }
 
         if (rememberMe) {
-          // Beni hatırla seçiliyse token 24 saat geçerli olacak
-          const expDate = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 saat sonra geçerli olacak
+          // Beni hatırla seçiliyse token 7 gün  geçerli olacak
+          const expDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 24 saat sonra geçerli olacak
           cookies.set("TOKEN", result.data.token, {
             path: "/",
             expires: expDate,
