@@ -1,40 +1,23 @@
 ## Project Personel Assignment Request
 
-Proje Başlığı ve Amacı
+Personel Tayin Talebi Uygulaması, adli personel atama süreçlerini kolaylaştırmak için geliştirilmiş bir web uygulamasıdır. Bu uygulama, adli personelin atanması, görev değişiklikleri gibi işlemleri yönetmeyi amaçlar.
 
 Kullanılan Teknolojiler
 
-Kurulum ve Çalıştırma Adımları
+## Backend Kullanılan Teknolojiler
 
-Kullanım Senaryoları / Örnek Kullanım
-
-Ekran Görüntüleri (screenshots/ klasöründen)
-
-Veritabanı Yapısı / ER Diyagramı
-
-API Dökümantasyonu (Varsa Swagger benzeri)
-
-Geliştirici Notları
-
-
-
-
-
-
-
-
-
-Kullanılacak teknoloji hakkında kısa bir bilgi ve neden tercih ettim
-
-Backend
-Mongo DB - NoSQL veritabanı, esnek veri yapısı ve ölçeklenebilirlik sunar, bu sayede prototip geliştirme ve hızlı iterasyon için idealdir.
-Express.js - Node.js üzerinde çalışan hafif ve esnek bir web uygulama çatısı, RESTful API geliştirmek için kullanışlıdır.
-React - Kullanıcı arayüzü geliştirmek için popüler bir JavaScript kütüphanesi, bileşen tabanlı mimarisi sayesinde yeniden kullanılabilir ve yönetilebilir UI bileşenleri oluşturmayı kolaylaştırır.
 Node.js - Sunucu tarafı JavaScript çalıştırmak için kullanılan bir platform, asenkron I/O desteği ile yüksek performanslı web uygulamaları geliştirmeyi sağlar.
+Express.js - Node.js üzerinde çalışan hafif ve esnek bir web uygulama çatısı, RESTful API geliştirmek için kullanışlıdır.
+Mongo DB - NoSQL veritabanı, esnek veri yapısı ve ölçeklenebilirlik sunar, bu sayede prototip geliştirme ve hızlı iterasyon için idealdir.
+React - Kullanıcı arayüzü geliştirmek için popüler bir JavaScript kütüphanesi, bileşen tabanlı mimarisi sayesinde yeniden kullanılabilir ve yönetilebilir UI bileşenleri oluşturmayı kolaylaştırır.
 Redis - Bellek içi veri yapısı deposu, hızlı veri erişimi ve önbellekleme için kullanılır, performansı artırır.
 multer - Dosya yükleme işlemleri için kullanılan bir middleware, kullanıcıların dosya yüklemesini kolaylaştırır.
+Dotenv - Çevresel değişkenleri yönetmek için kullanılan bir kütüphane, uygulama yapılandırmasını kolaylaştırır.
+jsonwebtoken - JSON Web Token'ları oluşturmak ve doğrulamak için kullanılan bir kütüphane, kimlik doğrulama ve yetkilendirme işlemlerinde kullanılır.
 
-FrontEnd 
+## Frontend Kullanılan Teknolojiler
+
+React - Kullanıcı arayüzü geliştirmek için popüler bir JavaScript kütüphanesi, bileşen tabanlı mimarisi sayesinde yeniden kullanılabilir ve yönetilebilir UI bileşenleri oluşturmayı kolaylaştırır.
 Axios - HTTP istekleri yapmak için kullanılan bir kütüphane, API ile etkileşimde kolaylık sağlar.
 Alertify.js - Kullanıcı bildirimleri için kullanılan bir kütüphane, kullanıcı deneyimini iyileştirir.
 Bootstrap - CSS framework, duyarlı ve modern tasarımlar oluşturmayı kolaylaştırır.
@@ -46,21 +29,98 @@ universal-cookie - React uygulamalarında çerez yönetimi için kullanılan bir
 http-proxy-middleware - API isteklerini yönlendirmek için kullanılan bir araç, geliştirme sırasında CORS sorunlarını aşmayı sağlar.
 fortawesome/fontawesome-free - İkon seti, kullanıcı arayüzünde görsel öğeler eklemeyi kolaylaştırır.
 
+Kurulum ve Çalıştırma Adımları
 
+1. Projeyi klonlayın:
 
-Projeyi çok kapsamlı yapmayı tercih etmedim  çünkü inceleme aşamasında çok fazla zaman harcamanızı istemedim.
-Bu yüzden sadece temel CRUD işlemlerini ve kullanıcı kimlik doğrulama işlemlerini içeren basit bir uygulama geliştirdim.
-Buna benzer olan ve şuan Eskişehir Adliyesinde local sunucuda çalışan kapsamlı bir uygulamam mevcut. 
+   ```bash
+   git clone
 
+   ```
 
+2. Proje dizinine gidin:
 
-// npm run start => Frontend ve Backend'i aynı anda çalıştırmak için kullanılır, frontend geliştirme modunda çalışır, backend ise prod modunda çalışır.
-// npm run dev => frontend ve backend'i aynı anda çalıştırmak için kullanılır, geliştirici modunda çalışır
-// npm run netlify => Frontend'i Netlify üzerinde dağıtmak için kullanılır, bu komut sadece frontend'i derler.
-// npm run backend => Sadece backend'i çalıştırmak için kullanılır, backend sunucusu başlatılır.
+   ```bash
+   cd project-personel-assignment-request
+   ```
 
+3. Gerekli bağımlılıkları yükleyin:
 
+   ```bash
+    npm install
+   ```
 
+4. Ortam değişkenlerini ayarlayın:
+   .env dosyasını oluşturun ve gerekli değişkenleri ekleyin. Örnek .env dosyası için .env.example dosyasını kullanabilirsiniz.
+   ```bash
+    cp .env.example .env
+   ```
+5. Veritabanını başlatın:
+   MongoDB veritabanınızı başlatın. Yerel olarak çalıştırmak için MongoDB'nin kurulu olması gerekmektedir.
+   ```bash
+   mongod
+   ```
+6. Projeyi dev modunda başlatın:
+   ```bash
+   npm run dev
+   ```
+   Bu komut, hem frontend hem de backend'i geliştirici modunda başlatır.
+   Frontend uygulaması genellikle http://localhost:3000 adresinde çalışır.
 
+## Proje Yapısı
+
+```
+project-personel-assignment-request
+├── backend
+│   ├── actions
+│   ├── common
+│   ├── config
+│   ├── constants
+│   ├── database
+│   ├── middleware
+│   ├── model
+│   ├── routes
+│   ├── scripts
+│   ├── .env.example
+│   ├── index.js
+├── frontend
+│   ├── public
+│   ├── src
+│   │   ├── components
+│   │   ├── assets
+│   │   ├── styles
+│   │   ├── index.js
+├── package.json
+├── README.md
+```
+
+## Proje Özellikleri
+
+- Kullanıcı kimlik doğrulama (JWT ve Redis kullanılarak)
+- Personel temel bilgileri yönetimi
+- Personel tayin talepleri başvuru ve onay süreçleri
+- Personel tayin talepleri listeleme ve detay görüntüleme
+
+Veritabanı Yapısı / ER Diyagramı
+
+API Dökümantasyonu (Varsa Swagger benzeri)
+
+## Geliştirici Notları
+
+Projeyi çok kapsamlı yapmayı tercih etmedim çünkü inceleme aşamasında çok fazla zaman harcamanızı istemedim.
+Bu yüzden temel CRUD işlemleri kullanarak tayin talepi ve personel ait temel bilgileri işleyen basit bir web app geliştirdim.
+Buna benzer olan ve şuan Eskişehir Adliyesinde çalışan kapsamlı bir uygulamam mevcut. Bu uygulamaya ait bir adet tanıtım videosu da bulunmaktadır.
+
+## Postman koleksiyonunu kullanarak API isteklerini test edebilirsiniz.
+Postman koleksiyonunu [buradan indirebilirsiniz](https://documenter.getpostman.com/view/18039597/2sB2qgdHtS).
 
 ## Lisans
+
+Bu proje sadece eğitim amaçlıdır ve herhangi bir lisans altında değildir. Kişisel kullanım için serbesttir, ancak ticari amaçlarla kullanılmamalıdır.
+
+## İletişim
+
+Eğer proje hakkında herhangi bir sorunuz veya geri bildiriminiz varsa, lütfen benimle iletişime geçin:
+
+- E-posta: [kalaybilgehan60@gmail.com](mailto:kalaybilgehan60@gmail.com)
+- GitHub: [afkborn](github.com/afkborn)

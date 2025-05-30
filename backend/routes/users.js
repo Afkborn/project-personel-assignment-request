@@ -5,7 +5,7 @@ const User = require("../model/User");
 const jwt = require("jsonwebtoken");
 const getTimeForLog = require("../common/time");
 const auth = require("../middleware/auth");
-const upload = require("../middleware/upload");
+const upload  = require("../middleware/upload");
 const toSHA256 = require("../common/hashing");
 const fs = require("fs");
 const path = require("path");
@@ -23,11 +23,11 @@ require("dotenv").config();
 const { CourthouseList } = require("../constants/CourthouseList");
 
 const MAX_LOGIN_ATTEMPTS = process.env.MAX_LOGIN_ATTEMPTS || 5; // Maksimum giriş denemesi sayısı
-const LOCKOUT_DURATION = process.env.LOCKOUT_DURATION || 60; // 5 dakika (saniye cinsinden)
+const LOCKOUT_DURATION = process.env.LOCKOUT_DURATION || 60; // Kilitlenme süresi (saniye cinsinden)
 
+// Kullanıcı girişi
 router.post("/login", async (request, response) => {
   const requiredFields = ["registrationNumber", "password"];
-  const { registrationNumber, rememberMe } = request.body;
   const missingFields = requiredFields.filter((field) => !request.body[field]);
   if (missingFields.length > 0) {
     return response.status(400).send({
@@ -35,6 +35,8 @@ router.post("/login", async (request, response) => {
       message: `${missingFields.join(", ")} ${Messages.REQUIRED_FIELD}`,
     });
   }
+
+  const { registrationNumber, rememberMe } = request.body;
 
   try {
     const user = await User.findOne({ registrationNumber });
@@ -226,6 +228,23 @@ router.post(
   Logger("POST users/register"),
   async (request, response) => {
     try {
+      const requiredFields = [
+        "registrationNumber",
+        "name",
+        "surname",
+        "password",
+        "roles",
+      ];
+      const missingFields = requiredFields.filter(
+        (field) => !request.body[field]
+      );
+      if (missingFields.length > 0) {
+        return response.status(400).send({
+          success: false,
+          message: `${missingFields.join(", ")} ${Messages.REQUIRED_FIELD}`,
+        });
+      }
+
       const {
         registrationNumber,
         name,
@@ -246,13 +265,6 @@ router.post(
         unitName,
         unitStartDate,
       } = request.body;
-
-      // Zorunlu alanları kontrol et
-      if (!registrationNumber || !name || !surname || !password || !roles) {
-        return response.status(400).send({
-          message: "Zorunlu alanlar eksik",
-        });
-      }
 
       // Sicil numarası daha önce kullanılmış mı kontrol et
       const existingUser = await User.findOne({ registrationNumber });
@@ -312,7 +324,7 @@ router.post(
 
       console.error(getTimeForLog() + "Register error:", error);
       response.status(500).send({
-        message: "Kullanıcı kaydedilirken bir hata oluştu",
+        message: Messages.USER_CREATE_FAILED,
         error: error.message,
       });
     }
@@ -397,7 +409,7 @@ router.put(
       }
 
       response.status(200).send({
-        message: "Kullanıcı bilgileri güncellendi",
+        message: Messages.USER_UPDATED,
         user: updatedUser,
       });
     } catch (error) {
@@ -432,7 +444,7 @@ router.delete(
 
       if (!deletedUser) {
         return response.status(404).send({
-          message: "Kullanıcı bulunamadı",
+          message: Messages.USER_NOT_FOUND,
         });
       }
 
@@ -440,7 +452,7 @@ router.delete(
       await invalidateAllUserTokens(userId);
 
       response.status(200).send({
-        message: "Kullanıcı hesabı başarıyla silindi",
+        message: Messages.USER_DELETED,
       });
     } catch (error) {
       console.error(getTimeForLog() + "Delete user error:", error);
@@ -462,7 +474,7 @@ router.delete(
       // Kullanıcı yetkilerini kontrol et
       if (!request.user.roles.includes("admin")) {
         return response.status(403).send({
-          message: "Bu işlem için yetkiniz bulunmamaktadır",
+          message: Messages.USER_NOT_AUTHORIZED,
         });
       }
 
@@ -481,7 +493,7 @@ router.delete(
       await invalidateAllUserTokens(userId);
 
       response.status(200).send({
-        message: "Kullanıcı hesabı başarıyla silindi",
+        message: Messages.USER_DELETED,
       });
     } catch (error) {
       console.error(getTimeForLog() + "Admin delete user error:", error);
@@ -499,7 +511,7 @@ router.get("/all", auth, Logger("GET users/all"), async (request, response) => {
     // Kullanıcı yetkilerini kontrol et
     if (!request.user.roles.includes("admin")) {
       return response.status(403).send({
-        message: "Bu işlem için yetkiniz bulunmamaktadır",
+        message: Messages.USER_NOT_AUTHORIZED,
       });
     }
 
@@ -730,7 +742,7 @@ router.get("/roles", Logger("GET users/roles"), async (request, response) => {
 router.post(
   "/upload-avatar",
   auth,
-  upload.single("avatar"),
+  upload.single("avatar"), // 'avatar' adında tek bir dosya yükle
   Logger("POST users/upload-avatar"),
   async (request, response) => {
     try {
@@ -741,7 +753,7 @@ router.post(
       const user = await User.findById(userId).select("-password");
       if (!user) {
         return response.status(404).send({
-          message: "Kullanıcı bulunamadı",
+          message: Messages.USER_NOT_FOUND,
         });
       }
 
@@ -770,7 +782,7 @@ router.post(
 
       if (!updatedUser) {
         return response.status(404).send({
-          message: "Kullanıcı bulunamadı",
+          message: Messages.USER_NOT_FOUND,
         });
       }
 

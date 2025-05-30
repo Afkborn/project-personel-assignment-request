@@ -11,31 +11,17 @@ const mediaFilesPath = process.env.MEDIA_FILES_FOLDER;
 if (!fs.existsSync(mediaPath)) {
   fs.mkdirSync(mediaPath, { recursive: true });
 }
-// Eğer media/temp klasörü yoksa oluştur
 if (!fs.existsSync(mediaTempPath)) {
   fs.mkdirSync(mediaTempPath, { recursive: true });
 }
-
-// Eğer media/avatar klasörü yoksa oluştur
 if (!fs.existsSync(mediaAvatarPath)) {
   fs.mkdirSync(mediaAvatarPath, { recursive: true });
 }
-
-// Eğer medaia/files klasörü yoksa oluştur
 if (!fs.existsSync(mediaFilesPath)) {
   fs.mkdirSync(mediaFilesPath, { recursive: true });
 }
 
-// kabul edilen dosya türleri
-const acceptedFileTypes = [
-  "image/jpeg",
-  "image/png",
-  "application/pdf",
-  "application/msword", // .doc
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .docx
-  "application/vnd.ms-excel", // .xls
-  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xlsx
-];
+
 
 
 // Dosya depolama ayarları
