@@ -18,7 +18,7 @@ router.post(
   Logger("POST assignmentrequests/create"),
   async (req, res) => {
     try {
-      const { currentCourthouse, requestedCourthouse, reason, type } = req.body;
+      const { currentCourthouse, requestedCourthouse, reason, type, documents } = req.body;
       const userId = req.user.id;
 
       // Zorunlu alanları kontrol et
@@ -64,6 +64,8 @@ router.post(
         });
       }
 
+
+
       // Yeni tayin talebi oluştur
       const newRequest = new AssignmentRequest({
         user: userId,
@@ -72,6 +74,8 @@ router.post(
         reason,
         status: "preparing", // Başlangıçta preparing statüsünde
         type: type || "optional", // Varsayılan olarak isteğe bağlı
+        documents: documents || [], // Belgeler opsiyonel
+        applicationDate: new Date(), // Başvuru tarihi
       });
 
       await newRequest.save();
@@ -702,9 +706,12 @@ router.post(
         // Dosya adını ve yolunu kaydet
         console.log(file);
         const oldPath = file.path;
+
+        // Dosya adını kullanıcı ID'si ile birleştirerek benzersiz hale getir
+  
         const fileName = userId + "-" + file.originalname.replace(/\s+/g, "_");
         const newPath = path.join(filesPath, fileName);
-        fs.copyFileSync(oldPath, newPath); // Dosyayı media klasörüne kopyala
+        fs.copyFileSync(oldPath, newPath); 
         return fileName 
       });
 
@@ -712,6 +719,7 @@ router.post(
       res.status(200).json({
         message: "Evraklar başarıyla yüklendi",
         documents: documents.map((doc) => ({
+          originalName: doc.replace(userId + "-", ""),
           filename: doc,
           url: `${filesPath}/${doc}`,
         })),

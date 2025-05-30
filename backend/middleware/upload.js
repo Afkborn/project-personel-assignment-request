@@ -26,6 +26,18 @@ if (!fs.existsSync(mediaFilesPath)) {
   fs.mkdirSync(mediaFilesPath, { recursive: true });
 }
 
+// kabul edilen dosya türleri
+const acceptedFileTypes = [
+  "image/jpeg",
+  "image/png",
+  "application/pdf",
+  "application/msword", // .doc
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .docx
+  "application/vnd.ms-excel", // .xls
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xlsx
+];
+
+
 // Dosya depolama ayarları
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {

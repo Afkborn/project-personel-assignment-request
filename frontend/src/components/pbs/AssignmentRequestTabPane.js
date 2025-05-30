@@ -33,14 +33,18 @@ export default function AssignmentRequestTabPane({ userData }) {
   // State tanımlamaları
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [uploadError, setUploadError] = useState(null);
   const [assignmentRequests, setAssignmentRequests] = useState([]);
   const [modal, setModal] = useState(false);
   const [courthouses, setCourthouses] = useState([]);
   const [formData, setFormData] = useState({
     requestedCourthouse: "",
     reason: "",
-    type: "optional", // Varsayılan olarak "optional"
+    type: "optional",
+    documents: [], // Belge URL'leri için boş bir dizi başlat
   });
+  const [documents, setDocuments] = useState([]); // Belgeler için state
+
   const [formErrors, setFormErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [action, setAction] = useState("create"); // create, edit
@@ -195,7 +199,8 @@ export default function AssignmentRequestTabPane({ userData }) {
           currentCourthouse: userData?.courtId,
           requestedCourthouse: formData.requestedCourthouse,
           reason: formData.reason,
-          type: formData.type || "optional", 
+          type: formData.type || "optional",
+          documents: formData.documents || [], // Belgeler varsa ekle
         },
       });
 
@@ -238,7 +243,7 @@ export default function AssignmentRequestTabPane({ userData }) {
         data: {
           requestedCourthouse: formData.requestedCourthouse,
           reason: formData.reason,
-          type: formData.type || "optional", 
+          type: formData.type || "optional",
         },
       });
 
@@ -394,6 +399,116 @@ export default function AssignmentRequestTabPane({ userData }) {
       default:
         return "";
     }
+  };
+
+  const handleFileUpload = (e) => {
+    e.preventDefault();
+    setUploadError(null);
+
+    const fileInput = document.getElementById("documents");
+    if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+      setUploadError("Lütfen en az bir dosya seçin.");
+      return;
+    }
+
+    const files = fileInput.files;
+
+    if (files.length > 5) {
+      setUploadError("Maksimum 5 dosya yükleyebilirsiniz.");
+      return;
+    }
+
+    const uploadFormData = new FormData();
+
+    // Mevcut talep ID'si varsa ve düzenleme modundaysak
+    if (currentRequest && currentRequest._id) {
+      uploadFormData.append("requestId", currentRequest._id);
+    }
+
+    for (let i = 0; i < files.length; i++) {
+      // boyut
+      if (files[i].size > 5 * 1024 * 1024) {
+        setUploadError("Her dosya maksimum 5MB boyutunda olmalıdır.");
+        return;
+      }
+      const acceptedTypes = [
+        "application/pdf",
+        "image/jpeg",
+        "image/png",
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "application/vnd.ms-excel",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      ];
+
+      if (!acceptedTypes.includes(files[i].type)) {
+        setUploadError(
+          "Sadece PDF, DOC, DOCX, XLS, XLSX, JPG ve PNG dosyaları yükleyebilirsiniz."
+        );
+        return;
+      }
+
+      uploadFormData.append("documents", files[i]);
+    }
+
+    setSubmitting(true);
+
+    // console.log("Dosya yükleniyor...", {
+    //   fileCount: files.length,
+    //   token: cookies.get("TOKEN") ? "Token var" : "Token yok",
+    // });
+
+    axios({
+      method: "POST",
+      url: "/api/assignment-requests/upload",
+      headers: {
+        "Content-Type": "multipart/form-data",
+        Authorization: `Bearer ${cookies.get("TOKEN")}`,
+      },
+      data: uploadFormData,
+    })
+      .then((response) => {
+        // console.log("Yükleme cevabı:", response.data);
+
+        setSubmitting(false);
+
+        if (
+          response.data &&
+          response.data.documents &&
+          Array.isArray(response.data.documents)
+        ) {
+          const responseDocuments = response.data.documents.map((file) => ({
+            url: file.url,
+            originalName: file.originalName || file.name || "Belge",
+          }));
+
+          const fileUrls = responseDocuments.map((doc) => doc.url);
+
+          setDocuments((prevDocs) => [...prevDocs, ...responseDocuments]);
+
+          setFormData((prevData) => ({
+            ...prevData,
+            documents: [...(prevData.documents || []), ...fileUrls],
+          }));
+
+          setUploadError(null);
+
+          fileInput.value = "";
+        } else {
+          setUploadError(
+            "Belgeler yüklenirken bir hata oluştu: Geçersiz sunucu yanıtı."
+          );
+          // console.error("Geçersiz sunucu yanıtı:", response.data);
+        }
+      })
+      .catch((error) => {
+        console.error("Dosya yükleme hatası:", error);
+        setSubmitting(false);
+        setUploadError(
+          error.response?.data?.message ||
+            "Belgeler yüklenirken bir hata oluştu. Lütfen daha sonra tekrar deneyin."
+        );
+      });
   };
 
   if (loading) {
@@ -642,6 +757,78 @@ export default function AssignmentRequestTabPane({ userData }) {
               <small className="text-muted">
                 Tayin talebinizin sebebini detaylı olarak açıklayınız
               </small>
+            </FormGroup>
+
+            {/* Docs */}
+            <FormGroup>
+              <Label for="documents">Ek Belgeler (Opsiyonel)</Label>
+              <Input
+                type="file"
+                name="documents"
+                id="documents"
+                accept=".pdf,.doc,.docx,.jpg,.png,.xlS,.xlsx"
+                multiple
+              />
+              <small className="text-muted">
+                İsteğe bağlı olarak tayin talebinizi destekleyen belgeler
+                ekleyebilirsiniz. (PDF, DOC, DOCX, XLS, XLSX, JPG, PNG
+                formatları desteklenir) <br />
+                Maksimum 5 dosya, her biri 5MB boyutunda olabilir.
+              </small>
+
+              <Button color="link" onClick={handleFileUpload}>
+                <FaPaperPlane className="me-1" />
+                Belgeleri Yükle
+              </Button>
+              {uploadError && (
+                <Alert color="danger" className="mt-2">
+                  {uploadError}
+                </Alert>
+              )}
+
+              <div className="mt-2">
+                {documents.length > 0 ? (
+                  <>
+                    <Label>Yüklenen Belgeler</Label>
+                    <ul className="list-group">
+                      {documents.map((doc, index) => (
+                        <li
+                          key={index}
+                          className="list-group-item d-flex justify-content-between align-items-center"
+                        >
+                          <a
+                            href={doc.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary"
+                          >
+                            {doc.originalName || `Belge ${index + 1}`}
+                          </a>
+                          <Button
+                            color="danger"
+                            size="sm"
+                            onClick={() => {
+                              setDocuments((prevDocs) =>
+                                prevDocs.filter((d, i) => i !== index)
+                              );
+                              setFormData((prevData) => ({
+                                ...prevData,
+                                documents: prevData.documents.filter(
+                                  (url) => url !== doc.url
+                                ),
+                              }));
+                            }}
+                          >
+                            <FaTrash />
+                          </Button>
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                ) : (
+                  <small className="text-muted">Henüz belge yüklenmedi.</small>
+                )}
+              </div>
             </FormGroup>
           </ModalBody>
           <ModalFooter>
