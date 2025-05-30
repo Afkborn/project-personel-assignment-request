@@ -12,7 +12,6 @@ const fs = require("fs");
 const path = require("path");
 const { changeTurkishCharacters } = require("../common/localization");
 
-
 // Yeni tayin talebi oluştur
 router.post(
   "/create",

@@ -10,7 +10,7 @@ module.exports = (reqID) => (request, _, next) => {
   }
 
   const logMessage =
-    getTimeForLog() + `Sicil ${username}\t[IP ${clientIP}]\t(${reqID})`;
+    getTimeForLog() + `\tSicil ${username}\t[IP ${clientIP}]\t(${reqID})`;
 
   console.log(logMessage); // Logları konsola yaz
 

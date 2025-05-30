@@ -11,47 +11,175 @@ const fs = require("fs");
 const path = require("path");
 const mediaAvatarPath = process.env.MEDIA_AVATAR_FOLDER;
 const {
+  redisClient,
+  isConnected,
   invalidateAllUserTokens,
-  isValidToken,
   addToBlacklist,
+  isValidToken,
 } = require("../config/Redis");
 const Logger = require("../middleware/logger");
 const { RoleList } = require("../constants/RoleList");
 require("dotenv").config();
 const { CourthouseList } = require("../constants/CourthouseList");
 
-// Kullanıcı girişi
-router.post("/login", Logger("POST users/login"), async (request, response) => {
+const MAX_LOGIN_ATTEMPTS = process.env.MAX_LOGIN_ATTEMPTS || 5; // Maksimum giriş denemesi sayısı
+const LOCKOUT_DURATION = process.env.LOCKOUT_DURATION || 60; // 5 dakika (saniye cinsinden)
+
+router.post("/login", async (request, response) => {
+  const requiredFields = ["registrationNumber", "password"];
+  const { registrationNumber, rememberMe } = request.body;
+  const missingFields = requiredFields.filter((field) => !request.body[field]);
+  if (missingFields.length > 0) {
+    return response.status(400).send({
+      success: false,
+      message: `${missingFields.join(", ")} ${Messages.REQUIRED_FIELD}`,
+    });
+  }
+
   try {
-    // Request body'den kullanıcı bilgilerini al
-    const { registrationNumber, password, rememberMe } = request.body;
-
-    // Zorunlu alanları kontrol et
-    if (!registrationNumber || !password) {
-      return response.status(400).send({
-        message: "Sicil numarası ve şifre gereklidir",
-      });
-    }
-
     const user = await User.findOne({ registrationNumber });
     if (!user) {
-      return response.status(401).send({
-        message: "Geçersiz kimlik bilgileri",
+      return response.status(404).send({
+        message: Messages.USER_NOT_FOUND,
       });
     }
 
-    const hashedPassword = toSHA256(password);
+    // Önce kullanıcının kilitli olup olmadığını kontrol et
+    let attempts = 0;
+    let lockedUntil = null;
+    let redisAvailable = false;
 
-    if (user.password !== hashedPassword) {
+    if (redisClient && isConnected()) {
+      try {
+        const rc = redisClient();
+        redisAvailable = true;
+
+        // Multi-get ile tek seferde hem deneme sayısını hem de kilit durumunu kontrol et
+        // Bu sayede Redis'e yapılan istek sayısını azaltıyoruz
+        const [currentAttempts, lockTimestamp] = await Promise.all([
+          rc.get(`loginAttempts:${user.username}`),
+          rc.get(`loginLock:${user.username}`),
+        ]);
+
+        // Redis'te veri bulunursa kullan, bulunmazsa varsayılan değerleri kullan
+        if (currentAttempts) {
+          attempts = parseInt(currentAttempts);
+        }
+
+        if (lockTimestamp) {
+          const now = Math.floor(Date.now() / 1000);
+          const lockTime = parseInt(lockTimestamp);
+
+          if (now < lockTime) {
+            // Kilit süresi henüz geçmemiş
+            const remainingSeconds = lockTime - now;
+            const remainingMinutes = Math.ceil(remainingSeconds / 60);
+
+            return response.status(429).send({
+              message: `Çok fazla hatalı giriş denemesi. Hesabınız geçici olarak kilitlendi. ${remainingMinutes} dakika sonra tekrar deneyiniz.`,
+              lockedUntil: new Date(lockTime * 1000),
+              remainingAttempts: 0,
+            });
+          } else {
+            // Kilit süresi geçmiş, kilidi kaldır
+            await rc.del(`loginLock:${user.username}`);
+            await rc.del(`loginAttempts:${user.username}`);
+            attempts = 0;
+          }
+        }
+      } catch (redisError) {
+        console.error(getTimeForLog() + "Redis lock check error:", redisError);
+        redisAvailable = false;
+        // Redis hata verirse, güvenli modda devam et
+        attempts = 0; // Redis olmadan hata sayısını takip edemeyiz, en güvenlisi sıfırlamaktır
+      }
+    }
+
+    // Şifre yanlış ise
+    if (user.password !== toSHA256(request.body.password)) {
+      attempts++; // Hatalı giriş sayısını artır
+
+      // Eğer Redis bağlantısı varsa, hatalı giriş sayısını artır
+      if (redisAvailable) {
+        try {
+          const rc = redisClient();
+
+          // Hatalı giriş sayısını güncelle
+          const key = `loginAttempts:${user.username}`;
+          const value = attempts.toString();
+          await rc.setEx(key, LOCKOUT_DURATION, value);
+
+          // Eğer maksimum denemeye ulaşıldıysa hesabı kilitle
+          if (attempts >= MAX_LOGIN_ATTEMPTS) {
+            const lockUntil = Math.floor(Date.now() / 1000) + LOCKOUT_DURATION;
+            await rc.setEx(
+              `loginLock:${user.username}`,
+              LOCKOUT_DURATION,
+              lockUntil.toString()
+            );
+
+            console.log(
+              getTimeForLog() +
+                `\rUser ${user.username} account locked until ${new Date(
+                  lockUntil * 1000
+                )}`
+            );
+
+            return response.status(429).send({
+              message: `Çok fazla hatalı giriş denemesi. Hesabınız 30 dakika süreyle kilitlendi.`,
+              lockedUntil: new Date(lockUntil * 1000),
+              remainingAttempts: 0,
+            });
+          }
+
+          console.log(
+            getTimeForLog() +
+              `Login attempts for ${user.username} updated to ${attempts}`
+          );
+        } catch (redisError) {
+          console.error(getTimeForLog() + "Redis error:", redisError);
+        }
+      } else {
+        console.log(
+          getTimeForLog() +
+            `Redis unavailable, cannot track login attempts for ${user.username}`
+        );
+      }
+
+      const remainingAttempts = redisAvailable
+        ? Math.max(0, MAX_LOGIN_ATTEMPTS - attempts)
+        : 1;
+      const attemptsMessage =
+        remainingAttempts > 0
+          ? `Kalan giriş hakkı: ${remainingAttempts}`
+          : "Çok fazla hatalı giriş denemesi. Hesabınız kilitlendi.";
+
       return response.status(401).send({
-        message: "Geçersiz kimlik bilgileri",
+        message: `${Messages.PASSWORD_INCORRECT}. ${attemptsMessage}`,
+        remainingAttempts: remainingAttempts,
       });
     }
 
-    // JWT token oluştur
-    // Eğer rememberMe true ise token süresini 7 gün yap, değilse 24 saat
+    // Şifre doğru ise, hatalı giriş sayısını ve kilidi sıfırla
+    if (redisAvailable) {
+      try {
+        const rc = redisClient();
+        await rc.del(`loginAttempts:${user.username}`);
+        await rc.del(`loginLock:${user.username}`);
+        console.log(
+          getTimeForLog() +
+            `Login attempts and locks reset for ${user.username} after successful login`
+        );
+      } catch (redisError) {
+        console.error(
+          getTimeForLog() + "Redis error when resetting login attempts:",
+          redisError
+        );
+      }
+    }
+
     const tokenExpiry = rememberMe ? "7d" : "24h";
-    console.log("Token süresi:", tokenExpiry);
+
     const token = jwt.sign(
       {
         id: user._id,
@@ -64,13 +192,12 @@ router.post("/login", Logger("POST users/login"), async (request, response) => {
       }
     );
 
-    // Kullanıcı bilgilerini ve token'ı döndür
     const clientIP =
       request.headers["x-forwarded-for"] || request.socket.remoteAddress;
     console.log(
       getTimeForLog() + "User",
       user.registrationNumber,
-      "logged in [" + clientIP + "]"
+      "logged in with token [" + clientIP + "]"
     );
 
     response.status(200).send({
