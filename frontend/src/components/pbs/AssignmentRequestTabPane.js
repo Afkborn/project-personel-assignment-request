@@ -115,8 +115,8 @@ export default function AssignmentRequestTabPane({ userData }) {
       setFormData({
         requestedCourthouse: "",
         reason: "",
-        type: "optional", 
-        documents: [], 
+        type: "optional",
+        documents: [],
       });
       setFormErrors({});
       setAction("create");
@@ -621,6 +621,7 @@ export default function AssignmentRequestTabPane({ userData }) {
                 <th>Talep Tarihi</th>
                 <th>Talep Tipi</th>
                 <th>Durum</th>
+                <th>Belge Sayısı</th>
                 <th>İşlemler</th>
               </tr>
             </thead>
@@ -633,6 +634,12 @@ export default function AssignmentRequestTabPane({ userData }) {
                   <td>{new Date(request.createdAt).toLocaleDateString()}</td>
                   <td>{getLabelForType(request.type)}</td>
                   <td>{getStatusBadge(request.status)}</td>
+                  <td>
+                    {request.documents && request.documents.length > 0
+                      ? request.documents.length
+                      : 0}
+                  </td>
+
                   <td>
                     {request.status === "preparing" && (
                       <>
@@ -863,7 +870,9 @@ export default function AssignmentRequestTabPane({ userData }) {
 
                               // Documents listesinden belgeyi kaldır
                               setDocuments((prevDocs) => {
-                                const newDocs = prevDocs.filter((d, i) => i !== index);
+                                const newDocs = prevDocs.filter(
+                                  (d, i) => i !== index
+                                );
                                 console.log("Güncel belgeler:", newDocs);
                                 return newDocs;
                               });
@@ -873,7 +882,10 @@ export default function AssignmentRequestTabPane({ userData }) {
                                 const newDocsUrls = prevData.documents.filter(
                                   (url) => url !== docUrl
                                 );
-                                console.log("Güncel formData belgeler:", newDocsUrls);
+                                console.log(
+                                  "Güncel formData belgeler:",
+                                  newDocsUrls
+                                );
                                 return {
                                   ...prevData,
                                   documents: newDocsUrls,
