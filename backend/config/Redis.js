@@ -171,13 +171,13 @@ const isValidToken = async (token) => {
     // );
 
     // Versiyon kontrolü - eğer Redis'te versiyon yoksa geçerli kabul et
-    if (!currentVersion) {
-      console.log(
-        getTimeForLog() +
-          `No token version found for user ${userId}, accepting token`
-      );
-      return true;
-    }
+    // if (!currentVersion) {
+    //   console.log(
+    //     getTimeForLog() +
+    //       `No token version found for user ${userId}, accepting token`
+    //   );
+    //   return true;
+    // }
 
     // Token versiyonu kontrolü - token versiyonu, Redis'teki versiyondan küçükse geçersiz
     const isValid = parseInt(tokenVersion) >= parseInt(currentVersion);

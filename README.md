@@ -6,6 +6,9 @@ Personel Tayin Talebi Uygulaması, adli personel atama süreçlerini kolaylaşt�
 
 Uygulamanın canlı demosunu [buradan görüntüleyebilirsiniz](https://project-personel-assignment-request.netlify.app/)
 
+Uygulamanın backend kısmını [buradan görüntüleyebilirsiniz](https://personel-assignment-request.bilgehan26.keenetic.pro)
+Backend kısmı Raspberry Pi üzerinde çalışmaktadır. Bu nedenle, performans ve erişilebilirlik açısından bazı sınırlamalar olabilir.
+
 
 
 ## Backend Kullanılan Teknolojiler
