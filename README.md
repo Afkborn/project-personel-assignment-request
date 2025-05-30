@@ -2,7 +2,11 @@
 
 Personel Tayin Talebi Uygulaması, adli personel atama süreçlerini kolaylaştırmak için geliştirilmiş bir web uygulamasıdır. Bu uygulama, adli personelin atanması, görev değişiklikleri gibi işlemleri yönetmeyi amaçlar.
 
-Kullanılan Teknolojiler
+## Demo
+
+Uygulamanın canlı demosunu [buradan görüntüleyebilirsiniz](https://project-personel-assignment-request.netlify.app/)
+
+
 
 ## Backend Kullanılan Teknolojiler
 

@@ -189,22 +189,6 @@ export default function AssignmentRequestTabPane({ userData }) {
         return;
       }
 
-      const response = await axios({
-        method: "POST",
-        url: "/api/assignment-requests/create",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        data: {
-          currentCourthouse: userData?.courtId,
-          requestedCourthouse: formData.requestedCourthouse,
-          reason: formData.reason,
-          type: formData.type || "optional",
-          documents: formData.documents || [], // Belgeler varsa ekle
-        },
-      });
-
       // Tayin talepleri listesini güncelle
       fetchAssignmentRequests();
 
