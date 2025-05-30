@@ -625,7 +625,6 @@ router.post(
 // validate token endpoint
 router.post("/validate-token", async (request, response) => {
   try {
-    // Token'ı authorization header'dan al
     const authHeader = request.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -648,16 +647,9 @@ router.post("/validate-token", async (request, response) => {
     }
 
     try {
-      // Token'ı doğrula
+
       const decodedToken = jwt.verify(token, process.env.RANDOM_TOKEN);
 
-      // Doğrulanan token içeriğini logla (hata ayıklama için)
-      console.log(
-        getTimeForLog() + `Decoded token:`,
-        JSON.stringify(decodedToken)
-      );
-
-      // Token içeriğinden kullanıcı bilgilerini al
       const userId = decodedToken.id;
       const registrationNumber = decodedToken.registrationNumber;
       const roles = decodedToken.roles;
@@ -693,12 +685,10 @@ router.post("/validate-token", async (request, response) => {
             });
           }
         } catch (redisError) {
-          // Redis hata verirse loglayıp devam et (çökmeyi önlemek için)
           console.error(
             getTimeForLog() + "Redis validation error:",
             redisError
           );
-          // Redis hatası durumunda tokeni geçerli sayalım, ama loglayalım
         }
       }
 

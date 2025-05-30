@@ -14,13 +14,18 @@ const requiredEnvVars = [
   "PORT",
   "MONGO_DB_CONNECTION",
   "SALT_CODE",
+  "REDIS_URL",
   "RANDOM_TOKEN",
   "DEFAULT_ADMIN_REGISTRATION_NUMBER",
   "DEFAULT_ADMIN_PASSWORD",
+  
   "MEDIA_ROOT_FOLDER",
   "MEDIA_TEMP_FOLDER",
   "MEDIA_AVATAR_FOLDER",
-  "REDIS_URL"
+  "MEDIA_FILES_FOLDER",
+
+  "MAX_LOGIN_ATTEMPTS",
+  "LOCKOUT_DURATION",
 ];
 requiredEnvVars.forEach((envVar) => {
   if (!process.env[envVar]) {
@@ -30,7 +35,6 @@ requiredEnvVars.forEach((envVar) => {
     process.exit(1); // Uygulamayı durdur
   }
 });
-
 
 // Redis bağlantısını başlat
 initRedis().then((isConnected) => {
