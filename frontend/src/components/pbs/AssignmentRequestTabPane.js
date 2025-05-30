@@ -115,7 +115,8 @@ export default function AssignmentRequestTabPane({ userData }) {
       setFormData({
         requestedCourthouse: "",
         reason: "",
-        type: "optional", // Varsayılan olarak "optional"
+        type: "optional", 
+        documents: [], 
       });
       setFormErrors({});
       setAction("create");
@@ -233,6 +234,22 @@ export default function AssignmentRequestTabPane({ userData }) {
         return;
       }
 
+      // Güncellenecek veriyi hazırla
+      const updateData = {
+        requestedCourthouse: formData.requestedCourthouse,
+        reason: formData.reason,
+        type: formData.type || "optional",
+      };
+
+      // Belgeler varsa ekle
+      if (formData.documents && formData.documents.length > 0) {
+        updateData.documents = formData.documents;
+
+        // Hata ayıklama
+        console.log("Gönderilecek belgeler:", updateData.documents);
+      }
+
+      // Güncelleme isteği gönder
       await axios({
         method: "PUT",
         url: `/api/assignment-requests/update/${currentRequest._id}`,
@@ -240,14 +257,13 @@ export default function AssignmentRequestTabPane({ userData }) {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        data: {
-          requestedCourthouse: formData.requestedCourthouse,
-          reason: formData.reason,
-          type: formData.type || "optional",
-        },
+        data: updateData,
       });
 
+      // Listeyi yenile
       fetchAssignmentRequests();
+
+      // Modal'ı kapat
       toggleModal();
     } catch (error) {
       console.error("Tayin talebi güncellenirken hata:", error);
@@ -262,11 +278,45 @@ export default function AssignmentRequestTabPane({ userData }) {
 
   const editRequest = (request) => {
     setCurrentRequest(request);
+
+    // Belgeleri doğru formata dönüştür
+    let documentsList = [];
+
+    if (request.documents && Array.isArray(request.documents)) {
+      // documents dizisindeki her belge için doğru formatı oluştur
+      documentsList = request.documents
+        .map((doc) => {
+          // Eğer doc bir string ise (URL) onu objeye çevir
+          if (typeof doc === "string") {
+            return {
+              url: doc,
+              originalName: doc.split("/").pop(),
+            };
+          }
+          // Eğer doc zaten bir obje ise, onu doğrudan kullan
+          else if (typeof doc === "object") {
+            return {
+              url: doc.url || doc,
+              originalName: doc.originalName || doc.url.split("/").pop(),
+            };
+          }
+          return null;
+        })
+        .filter((doc) => doc !== null); // null değerleri filtrele
+    }
+
+    // formData'yı ayarla
     setFormData({
       requestedCourthouse: request.requestedCourthouse.toString(),
       reason: request.reason,
       type: request.type || "optional",
+      documents: documentsList.map((doc) => doc.url), // Sadece URL'leri al
     });
+
+    // Belgeler state'ini ayarla
+    setDocuments(documentsList);
+
+    // Modal'ı aç
     setAction("edit");
     setModal(true);
   };
@@ -808,15 +858,27 @@ export default function AssignmentRequestTabPane({ userData }) {
                             color="danger"
                             size="sm"
                             onClick={() => {
-                              setDocuments((prevDocs) =>
-                                prevDocs.filter((d, i) => i !== index)
-                              );
-                              setFormData((prevData) => ({
-                                ...prevData,
-                                documents: prevData.documents.filter(
-                                  (url) => url !== doc.url
-                                ),
-                              }));
+                              // Önce belgenin URL'sini al
+                              const docUrl = doc.url;
+
+                              // Documents listesinden belgeyi kaldır
+                              setDocuments((prevDocs) => {
+                                const newDocs = prevDocs.filter((d, i) => i !== index);
+                                console.log("Güncel belgeler:", newDocs);
+                                return newDocs;
+                              });
+
+                              // formData'daki documents dizisinden belgeyi kaldır
+                              setFormData((prevData) => {
+                                const newDocsUrls = prevData.documents.filter(
+                                  (url) => url !== docUrl
+                                );
+                                console.log("Güncel formData belgeler:", newDocsUrls);
+                                return {
+                                  ...prevData,
+                                  documents: newDocsUrls,
+                                };
+                              });
                             }}
                           >
                             <FaTrash />

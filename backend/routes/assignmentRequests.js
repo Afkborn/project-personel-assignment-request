@@ -10,7 +10,7 @@ const upload = require("../middleware/upload");
 const filesPath = process.env.MEDIA_FILES_FOLDER;
 const fs = require("fs");
 const path = require("path");
-
+const { changeTurkishCharacters } = require("../common/localization");
 // Yeni tayin talebi oluştur
 router.post(
   "/create",
@@ -18,7 +18,13 @@ router.post(
   Logger("POST assignmentrequests/create"),
   async (req, res) => {
     try {
-      const { currentCourthouse, requestedCourthouse, reason, type, documents } = req.body;
+      const {
+        currentCourthouse,
+        requestedCourthouse,
+        reason,
+        type,
+        documents,
+      } = req.body;
       const userId = req.user.id;
 
       // Zorunlu alanları kontrol et
@@ -63,8 +69,6 @@ router.post(
           requestId: existingPendingRequest._id,
         });
       }
-
-
 
       // Yeni tayin talebi oluştur
       const newRequest = new AssignmentRequest({
@@ -116,23 +120,23 @@ router.put(
   async (req, res) => {
     try {
       const { id } = req.params;
-      const { requestedCourthouse, reason, type } = req.body;
+      const { requestedCourthouse, reason, type, documents } = req.body;
       const userId = req.user.id;
 
       // Talebi bul
-      const request = await AssignmentRequest.findOne({
+      const assignmentRequest = await AssignmentRequest.findOne({
         _id: id,
         user: userId,
       });
 
-      if (!request) {
+      if (!assignmentRequest) {
         return res.status(404).json({
           message: "Tayin talebi bulunamadı",
         });
       }
 
       // Sadece 'preparing' durumundayken güncellemeye izin ver
-      if (request.status !== "preparing") {
+      if (assignmentRequest.status !== "preparing") {
         return res.status(400).json({
           message:
             "Sadece hazırlanma aşamasındaki tayin talepleri güncellenebilir",
@@ -154,39 +158,51 @@ router.put(
 
         // Aynı adliyelere talep yapılmamasını kontrol et
         if (
-          parseInt(request.currentCourthouse) === parseInt(requestedCourthouse)
+          parseInt(assignmentRequest.currentCourthouse) ===
+          parseInt(requestedCourthouse)
         ) {
           return res.status(400).json({
             message: "Mevcut adliye ile talep edilen adliye aynı olamaz",
           });
         }
 
-        request.requestedCourthouse = requestedCourthouse;
+        assignmentRequest.requestedCourthouse = requestedCourthouse;
       }
 
       if (reason) {
-        request.reason = reason;
+        assignmentRequest.reason = reason;
       }
       if (type) {
-        request.type = type;
+        assignmentRequest.type = type;
       }
 
-      await request.save();
+      // documents yok ise silinmiş demektir
+      if (documents === null || documents === undefined) {
+        assignmentRequest.documents = [];
+      }
+
+      if (documents && Array.isArray(documents)) {
+        assignmentRequest.documents = documents;
+      }
+
+      await assignmentRequest.save();
 
       // Adliye isimlerini ekleyerek cevap ver
       const currentCourthouseName =
         CourthouseList.find(
-          (court) => court.plateCode === parseInt(request.currentCourthouse)
+          (court) =>
+            court.plateCode === parseInt(assignmentRequest.currentCourthouse)
         )?.name || "Bilinmiyor";
       const requestedCourthouseName =
         CourthouseList.find(
-          (court) => court.plateCode === parseInt(request.requestedCourthouse)
+          (court) =>
+            court.plateCode === parseInt(assignmentRequest.requestedCourthouse)
         )?.name || "Bilinmiyor";
 
       res.status(200).json({
         message: "Tayin talebi başarıyla güncellendi",
         request: {
-          ...request.toObject(),
+          ...assignmentRequest.toObject(),
           currentCourthouseName,
           requestedCourthouseName,
         },
@@ -704,15 +720,23 @@ router.post(
       // Evrakları talebe ekle
       const documents = req.files.map((file) => {
         // Dosya adını ve yolunu kaydet
-        console.log(file);
-        const oldPath = file.path;
 
-        // Dosya adını kullanıcı ID'si ile birleştirerek benzersiz hale getir
-  
-        const fileName = userId + "-" + file.originalname.replace(/\s+/g, "_");
-        const newPath = path.join(filesPath, fileName);
-        fs.copyFileSync(oldPath, newPath); 
-        return fileName 
+        const oldPath = file.path;
+        let fileName = file.originalname;
+        console.log(getTimeForLog() + "Yüklenen dosya:", fileName);
+        fileName = changeTurkishCharacters(fileName);
+        console.log(
+          getTimeForLog() + "Türkçe karakterler değiştirildi:",
+          fileName
+        );
+        fileName = fileName
+          .replace(/\s+/g, "_")
+          .replace(/[^a-zA-Z0-9_.-]/g, "");
+        const uniqueFileName = `${userId}-${fileName}`;
+        const newPath = path.join(filesPath, uniqueFileName);
+
+        fs.copyFileSync(oldPath, newPath);
+        return uniqueFileName;
       });
 
       // dosya yollarını response olarak dön
