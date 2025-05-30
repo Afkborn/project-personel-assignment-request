@@ -133,9 +133,11 @@ const isValidToken = async (token) => {
     }
 
     // Blacklist kontrolü
-    const isTokenBlacklisted = await isBlacklisted(token);
-    if (isTokenBlacklisted) {
-      console.log(getTimeForLog() + "Token blacklisted");
+    const blacklistKey = `bl_${token}`;
+    const isTokenBlacklisted = await redisClient.get(blacklistKey);
+
+    if (isTokenBlacklisted === "true") {
+      console.log(getTimeForLog() + "Token is blacklisted");
       return false;
     }
 
@@ -157,38 +159,7 @@ const isValidToken = async (token) => {
       return false;
     }
 
-    // Token oluşturma versiyonu kontrolü
-    const userId = decodedToken.id;
-    const tokenVersion = decodedToken.ver || 0; // Token'da versiyon yoksa 0 varsay
-
-    // Kullanıcının mevcut token versiyonu
-    const currentVersion = await redisClient.get(`user:${userId}:tokenVersion`);
-
-    // Token versiyonu kontrol loglaması
-    // console.log(
-    //   getTimeForLog() +
-    //     `Token validation - userId: ${userId}, tokenVer: ${tokenVersion}, currentVer: ${currentVersion}`
-    // );
-
-    // Versiyon kontrolü - eğer Redis'te versiyon yoksa geçerli kabul et
-    // if (!currentVersion) {
-    //   console.log(
-    //     getTimeForLog() +
-    //       `No token version found for user ${userId}, accepting token`
-    //   );
-    //   return true;
-    // }
-
-    // Token versiyonu kontrolü - token versiyonu, Redis'teki versiyondan küçükse geçersiz
-    const isValid = parseInt(tokenVersion) >= parseInt(currentVersion);
-    // console.log(
-    //   getTimeForLog() +
-    //     `Token validation result: ${
-    //       isValid ? "Valid" : "Invalid"
-    //     } (${tokenVersion} >= ${currentVersion})`
-    // );
-
-    return isValid;
+    return true;
   } catch (error) {
     console.error(getTimeForLog() + "Error checking token validity:", error);
     return true; // Hata durumunda güvenli tarafta kal

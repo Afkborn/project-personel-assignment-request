@@ -5,7 +5,7 @@ const User = require("../model/User");
 const jwt = require("jsonwebtoken");
 const getTimeForLog = require("../common/time");
 const auth = require("../middleware/auth");
-const upload  = require("../middleware/upload");
+const upload = require("../middleware/upload");
 const toSHA256 = require("../common/hashing");
 const fs = require("fs");
 const path = require("path");
@@ -651,42 +651,81 @@ router.post("/validate-token", async (request, response) => {
       // Token'ı doğrula
       const decodedToken = jwt.verify(token, process.env.RANDOM_TOKEN);
 
-      // console.log(
-      //   getTimeForLog() +
-      //     `Validating token for user ${decodedToken.username} (${decodedToken.id})`
-      // );
+      // Doğrulanan token içeriğini logla (hata ayıklama için)
+      console.log(
+        getTimeForLog() + `Decoded token:`,
+        JSON.stringify(decodedToken)
+      );
 
-      // Token'ın blacklist'te olup olmadığını ve versiyon kontrolünü yap
-      const tokenValid = await isValidToken(token);
+      // Token içeriğinden kullanıcı bilgilerini al
+      const userId = decodedToken.id;
+      const registrationNumber = decodedToken.registrationNumber;
+      const roles = decodedToken.roles;
 
-      if (!tokenValid) {
-        // console.log(
-        //   getTimeForLog() +
-        //     `Token validation failed for ${decodedToken.username}`
-        // );
+      // Eksik alanları kontrol et
+      if (!userId || !registrationNumber || !roles) {
+        console.error(
+          getTimeForLog() + `Token content missing required fields:`,
+          decodedToken
+        );
         return response.status(401).send({
           success: false,
-          message: "Token geçersiz veya oturum sonlandırılmış",
+          message: "Token içeriği geçersiz veya eksik",
           valid: false,
         });
       }
 
-      // console.log(
-      //   getTimeForLog() +
-      //     `Token validated successfully for ${decodedToken.username}`
-      // );
+      // Redis bağlantısı ve token blacklist kontrolü
+      if (redisClient && isConnected()) {
+        try {
+          // Token'ın blacklist'te olup olmadığını kontrol et
+          const isInvalidated = !(await isValidToken(token));
 
-      // Token geçerliyse kullanıcı bilgilerini döndür (password hariç)
+          if (isInvalidated) {
+            console.log(
+              getTimeForLog() +
+                `Token blacklisted for user ${registrationNumber}`
+            );
+            return response.status(401).send({
+              success: false,
+              message: "Oturum sonlandırılmış, lütfen tekrar giriş yapınız",
+              valid: false,
+            });
+          }
+        } catch (redisError) {
+          // Redis hata verirse loglayıp devam et (çökmeyi önlemek için)
+          console.error(
+            getTimeForLog() + "Redis validation error:",
+            redisError
+          );
+          // Redis hatası durumunda tokeni geçerli sayalım, ama loglayalım
+        }
+      }
+
+      // Veritabanından kullanıcıyı kontrol et (isteğe bağlı ek güvenlik)
+      const user = await User.findById(userId).select("-password");
+
+      if (!user) {
+        return response.status(401).send({
+          success: false,
+          message: "Token geçerli ancak kullanıcı bulunamadı",
+          valid: false,
+        });
+      }
+
+      // Token ve kullanıcı geçerliyse kullanıcı bilgilerini döndür
       response.status(200).send({
         success: true,
         message: "Token geçerlidir",
         valid: true,
         user: {
-          id: decodedToken.id,
-          username: decodedToken.username,
-          roles: decodedToken.roles,
+          id: user._id,
+          registrationNumber: user.registrationNumber,
+          name: user.name,
+          surname: user.surname,
+          roles: user.roles,
         },
-        expiresAt: new Date(decodedToken.exp * 1000), // Unix timestamp'i tarih formatına çevir
+        expiresAt: new Date(decodedToken.exp * 1000),
       });
     } catch (jwtError) {
       // JWT doğrulama hatası (süresi dolmuş, hatalı format, vs.)
@@ -694,11 +733,21 @@ router.post("/validate-token", async (request, response) => {
         getTimeForLog() + "JWT verification error:",
         jwtError.message
       );
-      return response.status(401).send({
-        success: false,
-        message: "Token geçersiz: " + jwtError.message,
-        valid: false,
-      });
+
+      if (jwtError.name === "TokenExpiredError") {
+        return response.status(401).send({
+          success: false,
+          message: "Token süresi dolmuş, lütfen tekrar giriş yapın",
+          valid: false,
+          expired: true,
+        });
+      } else {
+        return response.status(401).send({
+          success: false,
+          message: "Geçersiz token: " + jwtError.message,
+          valid: false,
+        });
+      }
     }
   } catch (error) {
     console.error(getTimeForLog() + "General token validation error:", error);
