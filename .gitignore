@@ -28,3 +28,9 @@ backend/dist/
 
 # Test File
 testFiles
+
+# Screenshots
+screenshots/
+
+# docs
+docs/
