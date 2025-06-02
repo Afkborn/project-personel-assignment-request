@@ -345,7 +345,7 @@ router.get(
       const assignmentRequest = await AssignmentRequest.find({
         user: userId,
       })
-        .sort({ ["createdAt"]: 1 })
+        .sort({ ["createdAt"]: -1 })
         .exec();
 
       // Adliye isimlerini ekle

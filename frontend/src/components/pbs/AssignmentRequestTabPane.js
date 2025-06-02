@@ -25,6 +25,9 @@ import {
   FaEdit,
   FaTrash,
   FaPaperPlane,
+  FaFileAlt,
+  FaEye,
+  FaDownload,
 } from "react-icons/fa";
 
 const cookies = new Cookies();
@@ -51,6 +54,9 @@ export default function AssignmentRequestTabPane({ userData }) {
   const [currentRequest, setCurrentRequest] = useState(null);
   const [confirmModal, setConfirmModal] = useState(false);
   const [confirmAction, setConfirmAction] = useState(null);
+  const [documentModal, setDocumentModal] = useState(false);
+  const [selectedDocuments, setSelectedDocuments] = useState([]);
+  const [selectedRequestForDocs, setSelectedRequestForDocs] = useState(null);
   const types = [
     { value: "optional", label: "İsteğe bağlı" },
     { value: "educational", label: "Eğitim" },
@@ -572,6 +578,18 @@ export default function AssignmentRequestTabPane({ userData }) {
       });
   };
 
+  const openDocumentsModal = (request) => {
+    setSelectedRequestForDocs(request);
+    setSelectedDocuments(request.documents || []);
+    setDocumentModal(true);
+  };
+
+  const closeDocumentsModal = () => {
+    setDocumentModal(false);
+    setSelectedDocuments([]);
+    setSelectedRequestForDocs(null);
+  };
+
   if (loading) {
     return (
       <div className="text-center py-5">
@@ -646,9 +664,19 @@ export default function AssignmentRequestTabPane({ userData }) {
                   <td>{getLabelForType(request.type)}</td>
                   <td>{getStatusBadge(request.status)}</td>
                   <td>
-                    {request.documents && request.documents.length > 0
-                      ? request.documents.length
-                      : 0}
+                    {request.documents && request.documents.length > 0 ? (
+                      <Button
+                        color="info"
+                        size="sm"
+                        onClick={() => openDocumentsModal(request)}
+                        title="Belgeleri görüntüle"
+                      >
+                        {request.documents.length} belge
+                        {request.documents.length > 1 ? "" : ""}
+                      </Button>
+                    ) : (
+                      0
+                    )}
                   </td>
 
                   <td>
@@ -969,6 +997,82 @@ export default function AssignmentRequestTabPane({ userData }) {
             onClick={handleConfirmAction}
           >
             {confirmAction?.type === "cancel" ? "Talebi İptal Et" : "Onaya Sun"}
+          </Button>
+        </ModalFooter>
+      </Modal>
+
+      {/* Belge Görüntüleme Modalı */}
+      <Modal isOpen={documentModal} toggle={closeDocumentsModal} size="lg">
+        <ModalHeader toggle={closeDocumentsModal}>
+          Tayin Talebi Belgeleri
+          <small className="ms-2 text-muted">
+            {selectedRequestForDocs?.applicationNumber}
+          </small>
+        </ModalHeader>
+        <ModalBody>
+          {selectedDocuments.length > 0 ? (
+            <div>
+              <p className="mb-3">
+                Bu tayin talebine ait{" "}
+                <strong>{selectedDocuments.length}</strong> adet belge
+                bulunuyor:
+              </p>
+              <div className="list-group">
+                {selectedDocuments.map((doc, index) => (
+                  <div
+                    key={index}
+                    className="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                  >
+                    <div className="d-flex align-items-center">
+                      <FaFileAlt className="text-primary me-3" size={24} />
+                      <div>
+                        <h6 className="mb-1">
+                          {doc.originalName || `Belge ${index + 1}`}
+                        </h6>
+                        <small className="text-muted">
+                          Tayin talebine eklenmiş belge
+                        </small>
+                      </div>
+                    </div>
+                    <div>
+                      <Button
+                        color="primary"
+                        size="sm"
+                        className="me-2"
+                        tag="a"
+                        href={doc.url || doc}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <FaEye className="me-1" /> Görüntüle
+                      </Button>
+                      <Button
+                        color="success"
+                        size="sm"
+                        tag="a"
+                        href={doc.url || doc}
+                        download
+                      >
+                        <FaDownload className="me-1" /> İndir
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-5">
+              <FaFileAlt size={48} className="text-muted mb-3" />
+              <h5>Bu talebe ait belge bulunmuyor</h5>
+              <p className="text-muted">
+                Tayin talebine herhangi bir belge eklenmemiş.
+              </p>
+            </div>
+          )}
+        </ModalBody>
+        <ModalFooter>
+          <Button color="secondary" onClick={closeDocumentsModal}>
+            Kapat
           </Button>
         </ModalFooter>
       </Modal>
