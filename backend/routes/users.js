@@ -515,23 +515,70 @@ router.get("/all", auth, Logger("GET users/all"), async (request, response) => {
       });
     }
 
-    // Sayfalama için parametreler
+
     const page = parseInt(request.query.page) || 1;
     const limit = parseInt(request.query.limit) || 10;
     const skip = (page - 1) * limit;
 
-    // Kullanıcıları getir (şifreler hariç)
+    // Kullanıcıları getir 
     const users = await User.find()
-      .select("-password")
+      .select("-password") // şifreyi getirme
       .skip(skip)
       .limit(limit)
       .sort({ createdAt: -1 });
+
+    if (!users || users.length === 0) {
+      return response.status(404).send({
+        message: "Kullanıcı bulunamadı",
+      });
+    }
+
+    
+    const objUsers = users.map((user) => {
+      const userObj = user.toObject(); // düz nesne, veri ekleme ve çıkarma işlemleri için gerekli
+
+      
+      const courthouse = CourthouseList.find(
+        (court) => court.plateCode === userObj.courtId
+      );
+
+      if (courthouse) {
+        userObj.court = {
+          plateCode: courthouse.plateCode,
+          name: courthouse.name,
+          address: courthouse.address,
+        };
+      } else {
+        userObj.court = {
+          plateCode: 0,
+          name: "Bilinmiyor",
+          address: "",
+        };
+      }
+
+     
+      userObj.rolesVisible = userObj.roles.map((role) => {
+        const roleInfo = RoleList.find((r) => r.name === role) || {
+          id: 0,
+          name: role,
+          label: role,
+        };
+
+        return {
+          id: roleInfo.id,
+          label: roleInfo.label,
+          name: roleInfo.name,
+        };
+      });
+
+      return userObj;
+    });
 
     // Toplam kullanıcı sayısını getir
     const total = await User.countDocuments();
 
     response.status(200).send({
-      users,
+      users: objUsers,
       pagination: {
         total,
         page,
@@ -548,36 +595,7 @@ router.get("/all", auth, Logger("GET users/all"), async (request, response) => {
   }
 });
 
-// Tüm kullanıcıların isim ve soyisimlerini listele
-router.get(
-  "/names",
-  auth,
-  Logger("GET users/names"),
-  async (request, response) => {
-    try {
-      // Sadece isim ve soyisim bilgilerini getir
-      const users = await User.find()
-        .select("name surname registrationNumber")
-        .sort({ name: 1, surname: 1 });
 
-      response.status(200).send({
-        users: users.map((user) => ({
-          id: user._id,
-          name: user.name,
-          surname: user.surname,
-          registrationNumber: user.registrationNumber,
-          fullName: `${user.name} ${user.surname}`,
-        })),
-      });
-    } catch (error) {
-      console.error(getTimeForLog() + "Get user names error:", error);
-      response.status(500).send({
-        message: "Kullanıcı isimleri listelenirken bir hata oluştu",
-        error: error.message,
-      });
-    }
-  }
-);
 
 // logout user
 router.post(
@@ -647,7 +665,6 @@ router.post("/validate-token", async (request, response) => {
     }
 
     try {
-
       const decodedToken = jwt.verify(token, process.env.RANDOM_TOKEN);
 
       const userId = decodedToken.id;

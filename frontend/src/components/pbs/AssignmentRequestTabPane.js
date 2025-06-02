@@ -189,9 +189,36 @@ export default function AssignmentRequestTabPane({ userData }) {
         return;
       }
 
+      // Yeni tayin talebi verisini hazırla
+      const requestData = {
+        currentCourthouse: userData?.courtId,
+        requestedCourthouse: formData.requestedCourthouse,
+        reason: formData.reason,
+        type: formData.type || "optional",
+      };
+
+      if (formData.documents && formData.documents.length > 0) {
+        requestData.documents = formData.documents;
+        console.log("Gönderilecek belgeler:", requestData.documents);
+      }
+
+      // Tayin talebi oluşturma API isteği
+      const response = await axios({
+        method: "POST",
+        url: "/api/assignment-requests/create",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        data: requestData,
+      });
+
+      console.log("Tayin talebi oluşturuldu:", response.data);
+
       // Tayin talepleri listesini güncelle
       fetchAssignmentRequests();
 
+      // Modal'ı kapat
       toggleModal();
     } catch (error) {
       console.error("Tayin talebi oluştururken hata:", error);
